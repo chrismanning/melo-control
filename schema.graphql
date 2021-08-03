@@ -1,0 +1,205 @@
+type Unit
+
+type Collection {
+  id: String!
+  rootUri: String!
+  name: String!
+  watch: Boolean!
+  kind: String!
+  sources(where: SourceWhere): [Source!]!
+  sourceGroups: [SourceGroup!]!
+}
+
+type CollectionMutation {
+  add(newCollection: NewCollection!): Collection!
+  delete(id: String!): Unit!
+  deleteAll: Unit!
+}
+
+input CollectionWhere {
+  id: Where
+  rootUri: Where
+}
+
+input ContainsExpr {
+  contains: String!
+}
+
+input EqExpr {
+  eq: String!
+}
+
+type FailedSourceUpdate {
+  id: String!
+  msg: String!
+}
+
+type GroupTags {
+  albumArtist: [String!]
+  albumTitle: String
+  date: String
+  genre: [String!]
+  totalTracks: String
+  discNumber: String
+  totalDiscs: String
+  musicbrainzArtistId: [String!]
+  musicbrainzAlbumArtistId: [String!]
+  musicbrainzAlbumId: String
+}
+
+type Image {
+  fileName: String!
+  downloadUri: String!
+}
+
+input InExpr {
+  in: [String!]!
+}
+
+type LibraryMutation {
+  stageSources(uris: [String!]!): StagedSources!
+  updateSources(updates: [SourceUpdate!]!): UpdatedSources!
+  collection: CollectionMutation!
+}
+
+type LibraryQuery {
+  sources(where: SourceWhere): [Source!]!
+  sourceGroups: [SourceGroup!]!
+  collections(where: CollectionWhere): [Collection!]!
+}
+
+type MappedTags {
+  artistName: [String!]
+  trackTitle: String
+  albumTitle: String
+  date: String
+  genre: [String!]
+  albumArtist: [String!]
+  trackNumber: String
+  totalTracks: String
+  discNumber: String
+  totalDiscs: String
+  comment: String
+  musicbrainzArtistId: [String!]
+  musicbrainzAlbumArtistId: [String!]
+  musicbrainzAlbumId: String
+  musicbrainzTrackId: String
+}
+
+input MappedTagsInput {
+  artistName: [String!]
+  trackTitle: String
+  albumTitle: String
+  date: String
+  genre: [String!]
+  albumArtist: [String!]
+  trackNumber: String
+  totalTracks: String
+  discNumber: String
+  totalDiscs: String
+  comment: String
+  musicbrainzArtistId: [String!]
+  musicbrainzAlbumArtistId: [String!]
+  musicbrainzAlbumId: String
+  musicbrainzTrackId: String
+}
+
+type Metadata {
+  tags: [Pair_Text_Text!]!
+  mappedTags: MappedTags!
+  formatId: String!
+  format: String!
+}
+
+type Mutation {
+  library: LibraryMutation!
+}
+
+input NewCollection {
+  rootPath: String!
+  name: String!
+  watch: Boolean!
+}
+
+input NotEqExpr {
+  notEq: String!
+}
+
+type Pair_Text_Text {
+  key: String!
+  value: String!
+}
+
+type Query {
+  library: LibraryQuery!
+}
+
+type Source {
+  id: String!
+  format: String!
+  metadata: Metadata!
+  sourceName: String!
+  sourceUri: String!
+  downloadUri: String!
+  length: Float!
+  coverImage: Image
+}
+
+type SourceGroup {
+  groupTags: GroupTags!
+  groupParentUri: String!
+  sources: [Source!]!
+  coverImage: Image
+}
+
+input SourceUpdate {
+  id: String!
+  updateTags: TagUpdate!
+}
+
+input SourceWhere {
+  id: Where
+  sourceUri: Where
+}
+
+type StagedSources {
+  sources: [Source!]!
+  groups: [SourceGroup!]!
+  numberOfSourcesImported: Int!
+}
+
+input TagUpdate {
+  setMappedTags: MappedTagsInput
+  setTags: [UpdatePair!]
+}
+
+type UpdatedSource {
+  id: String!
+}
+
+type UpdatedSources {
+  results: [UpdateSourceResult!]!
+}
+
+input UpdatePair {
+  key: String!
+  value: String!
+}
+
+union UpdateSourceResult = UpdatedSource | FailedSourceUpdate
+
+input Where {
+  inputname: WhereTags!
+  EqExpr: EqExpr
+  NotEqExpr: NotEqExpr
+  ContainsExpr: ContainsExpr
+  InExpr: InExpr
+}
+
+enum WhereTags {
+  EqExpr
+  NotEqExpr
+  ContainsExpr
+  InExpr
+}
+

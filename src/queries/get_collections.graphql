@@ -1,0 +1,10 @@
+query GetCollections {
+    library {
+        collections {
+            id
+            name
+            kind
+            rootUri
+        }
+    }
+}

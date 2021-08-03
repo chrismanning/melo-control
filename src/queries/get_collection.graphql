@@ -1,0 +1,29 @@
+query GetCollection($idEq: String!) {
+    library {
+        collections(where: {id: {inputname: EqExpr, EqExpr: {eq: $idEq}}}) {
+            id
+            name
+            sourceGroups {
+                sources {
+                    id
+                    metadata {
+                        mappedTags {
+                            artistName
+                            trackNumber
+                            trackTitle
+                        }
+                    }
+                    downloadUri
+                }
+                groupTags {
+                    albumArtist
+                    albumTitle
+                    date
+                    discNumber
+                    genre
+                    totalDiscs
+                }
+            }
+        }
+    }
+}
