@@ -1,6 +1,6 @@
 query GetCollection($idEq: String!) {
     library {
-        collections(where: {id: {inputname: EqExpr, EqExpr: {eq: $idEq}}}) {
+        collections(where: {id: {EqExpr: {eq: $idEq}}}) {
             id
             name
             sourceGroups {

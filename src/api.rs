@@ -1,7 +1,3 @@
-use druid::{ArcStr, Key};
-
-pub const MELO_API_URL: Key<ArcStr> = Key::new("melo.api.url");
-
 // #[derive(GraphQLQuery)]
 // #[graphql(
 // schema_path = "schema.graphql",

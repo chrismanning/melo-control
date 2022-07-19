@@ -1,7 +1,9 @@
-type Unit
+enum Unit {
+  Unit
+}
 
 type Collection {
-  id: String!
+  id: CollectionRef!
   rootUri: String!
   name: String!
   watch: Boolean!
@@ -16,6 +18,8 @@ type CollectionMutation {
   deleteAll: Unit!
 }
 
+scalar CollectionRef
+
 input CollectionWhere {
   id: Where
   rootUri: Where
@@ -25,12 +29,16 @@ input ContainsExpr {
   contains: String!
 }
 
+input EditMetadata {
+  metadataTransform: MetadataTransformation!
+}
+
 input EqExpr {
   eq: String!
 }
 
 type FailedSourceUpdate {
-  id: String!
+  id: SourceRef!
   msg: String!
 }
 
@@ -58,6 +66,8 @@ input InExpr {
 
 type LibraryMutation {
   stageSources(uris: [String!]!): StagedSources!
+  transformSources(transformations: [Transform!]!, where: SourceWhere): UpdatedSources!
+  previewTransformSources(transformations: [Transform!]!, where: SourceWhere): UpdatedSources!
   updateSources(updates: [SourceUpdate!]!): UpdatedSources!
   collection: CollectionMutation!
 }
@@ -105,10 +115,24 @@ input MappedTagsInput {
 }
 
 type Metadata {
-  tags: [Pair_Text_Text!]!
+  tags: [PairTextText!]!
   mappedTags: MappedTags!
   formatId: String!
   format: String!
+}
+
+"""
+Note! This input is an exclusive object,
+i.e., the customer can provide a value for only one field.
+"""
+input MetadataTransformation {
+  SetMapping: SetMapping
+  RemoveMappings: RemoveMappings
+  Retain: Retain
+}
+
+input Move {
+  movePattern: String!
 }
 
 type Mutation {
@@ -125,17 +149,30 @@ input NotEqExpr {
   notEq: String!
 }
 
-type Pair_Text_Text {
-  key: String!
-  value: String!
+type PairTextText {
+  _0: String!
+  _1: String!
 }
 
 type Query {
   library: LibraryQuery!
 }
 
+input RemoveMappings {
+  mappings: [String!]!
+}
+
+input Retain {
+  mappings: [String!]!
+}
+
+input SetMapping {
+  mapping: String!
+  values: [String!]!
+}
+
 type Source {
-  id: String!
+  id: SourceRef!
   format: String!
   metadata: Metadata!
   sourceName: String!
@@ -152,8 +189,10 @@ type SourceGroup {
   coverImage: Image
 }
 
+scalar SourceRef
+
 input SourceUpdate {
-  id: String!
+  id: SourceRef!
   updateTags: TagUpdate!
 }
 
@@ -162,10 +201,18 @@ input SourceWhere {
   sourceUri: Where
 }
 
+input SplitMultiTrackFile {
+  movePattern: String!
+}
+
 type StagedSources {
   sources: [Source!]!
   groups: [SourceGroup!]!
   numberOfSourcesImported: Int!
+}
+
+input StartsWithExpr {
+  startsWith: String!
 }
 
 input TagUpdate {
@@ -173,8 +220,18 @@ input TagUpdate {
   setTags: [UpdatePair!]
 }
 
+"""
+Note! This input is an exclusive object,
+i.e., the customer can provide a value for only one field.
+"""
+input Transform {
+  Move: Move
+  SplitMultiTrackFile: SplitMultiTrackFile
+  EditMetadata: EditMetadata
+}
+
 type UpdatedSource {
-  id: String!
+  _0: Source!
 }
 
 type UpdatedSources {
@@ -188,18 +245,15 @@ input UpdatePair {
 
 union UpdateSourceResult = UpdatedSource | FailedSourceUpdate
 
+"""
+Note! This input is an exclusive object,
+i.e., the customer can provide a value for only one field.
+"""
 input Where {
-  inputname: WhereTags!
   EqExpr: EqExpr
   NotEqExpr: NotEqExpr
   ContainsExpr: ContainsExpr
   InExpr: InExpr
-}
-
-enum WhereTags {
-  EqExpr
-  NotEqExpr
-  ContainsExpr
-  InExpr
+  StartsWithExpr: StartsWithExpr
 }
 

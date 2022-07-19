@@ -6,19 +6,29 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-druid = { git = "https://github.com/linebender/druid.git", default-features = false, features = ["x11", "svg", "image", "im"] }
-#druid-widget-nursery = { git = "https://github.com/linebender/druid-widget-nursery.git", features = ["async"]}
-graphql_client = "0.9.0"
-reqwest = "0.11.3"
-uuid = { version = "0.8.2", features = ["v4"] }
-log = "0.4.14"
-simplelog = "0.10.0"
+cstr = "*"
+eyre = "0.6"
+gurkle = "0.3"
+itertools = "0.10"
+ki18n = { version = "*", features = ["qmetaobject"] }
+kirigami = "*"
+log = "*"
+qmetaobject = "0.2"
+reqwest = "0.11"
+serde = "1.0"
+serde_json = "1.0"
 simple_logger = "1.11.0"
-serde = "1.0.126"
-serde_json = "1.0.64"
-gurkle = "0.3.0"
-tokio = { version = "1.8.0", features = ["full"] }
-itertools = "0.10.1"
+simplelog = "0.10.0"
+tokio = { version = "1", features = ["full"] }
+uuid = { version = "1", features = ["v4"] }
 
 [dev-dependencies]
-insta = "1.7.1"
+insta = "1"
+
+[build-dependencies]
+eyre = "0.6"
+npm_rs = "0.2.1"
+
+[profile.dev]
+debug = 2
+split-debuginfo = "off"
