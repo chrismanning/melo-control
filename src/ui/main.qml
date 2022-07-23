@@ -4,18 +4,24 @@ import QtQuick.Layouts 1.2
 import org.kde.kirigami 2.13 as Kirigami
 
 import "/dist/backend.js" as Backend
+import "."
 
 Kirigami.ApplicationWindow {
     id: root
 
     title: i18nc("@title:window", "Melo")
 
-    pageStack.initialPage: Kirigami.Page {
-
-        Controls.Label {
-            anchors.centerIn: parent
-            text: i18n(Backend.exports.hello())
-//            text: i18n(Backend.hello())
-        }
+    globalDrawer: Kirigami.GlobalDrawer {
+        isMenu: true
+        actions: [
+            Kirigami.Action {
+                text: i18n("Quit")
+                icon.name: "application-exit"
+                shortcut: StandardKey.Quit
+                onTriggered: Qt.quit()
+            }
+        ]
     }
+
+    pageStack.initialPage: CollectionList {}
 }

@@ -1,0 +1,7 @@
+mutation DeleteCollection($collectionId: CollectionRef!) {
+    library {
+        collection {
+            delete(id: $collectionId)
+        }
+    }
+}

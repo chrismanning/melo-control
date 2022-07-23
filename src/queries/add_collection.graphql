@@ -1,0 +1,13 @@
+mutation AddCollection($name: String!, $rootPath: String!, $watch: Boolean!) {
+    library {
+        collection {
+            add(newCollection: { name: $name, rootPath: $rootPath, watch: $watch }) {
+                id
+                name
+                kind
+                rootUri
+                watch
+            }
+        }
+    }
+}

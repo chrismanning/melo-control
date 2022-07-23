@@ -1,18 +1,57 @@
+import AddCollection from '!raw-loader!./../../queries/add_collection.graphql'
+import DeleteCollection from '!raw-loader!./../../queries/delete_collection.graphql'
 import GetCollections from '!raw-loader!./../../queries/get_collections.graphql'
+import GetCollection from '!raw-loader!./../../queries/get_collection.graphql'
 
 export function get_collections(callback) {
+    const request = {
+        query: GetCollections,
+    };
+    post_request(request, callback);
+}
+
+export function get_collection(collection_id, callback) {
+    const request = {
+        query: GetCollection,
+        variables: {
+            "idEq": collection_id,
+        }
+    };
+    post_request(request, callback);
+}
+
+export function add_collection(name, rootPath, watch, callback) {
+    const request = {
+        query: AddCollection,
+        variables: {
+            "name": name,
+            "rootPath": rootPath,
+            "watch": watch,
+        }
+    };
+    post_request(request, callback);
+}
+
+export function delete_collection(collection_id, callback) {
+    const request = {
+        query: DeleteCollection,
+        variables: {
+            "collectionId": collection_id,
+        }
+    };
+    post_request(request, callback);
+}
+
+function post_request(request, callback) {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', "http://localhost:5000/api");
     xhr.onreadystatechange = () => {
         if (xhr.readyState === XMLHttpRequest.DONE) {
-            console.log(xhr.responseText);
+            console.debug(xhr.responseText);
             if (callback) {
                 callback(JSON.parse(xhr.responseText));
             }
         }
     };
-    const query = {
-        query: GetCollections,
-    };
-    xhr.send(JSON.stringify(query));
+    xhr.send(JSON.stringify(request));
 }

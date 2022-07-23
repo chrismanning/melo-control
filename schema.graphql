@@ -14,7 +14,7 @@ type Collection {
 
 type CollectionMutation {
   add(newCollection: NewCollection!): Collection!
-  delete(id: String!): Unit!
+  delete(id: CollectionRef!): Unit!
   deleteAll: Unit!
 }
 

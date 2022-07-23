@@ -14,8 +14,6 @@ use log::LevelFilter;
 use qmetaobject::prelude::*;
 use simple_logger::SimpleLogger;
 
-mod api;
-mod data;
 mod ui;
 
 const HORIZONTAL_WIDGET_SPACING: f64 = 20.0;
