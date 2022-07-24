@@ -16,7 +16,7 @@ Kirigami.Page {
             text: i18n("&Add Collection")
             icon.name: "list-add"
             shortcut: StandardKey.New
-            onTriggered: addCollection.open()
+            onTriggered: addCollectionDialog.open()
         }
     ]
 
@@ -98,9 +98,9 @@ Kirigami.Page {
                         text: i18n("Delete")
                         icon.name: "list-remove"
                         onTriggered: {
-                            confirmDelete.collectionId = modelData.id
-                            confirmDelete.collectionName = modelData.name
-                            confirmDelete.open()
+                            confirmDeleteDialog.collectionId = modelData.id
+                            confirmDeleteDialog.collectionName = modelData.name
+                            confirmDeleteDialog.open()
                         }
                     }
 
@@ -110,7 +110,7 @@ Kirigami.Page {
     }
 
     Kirigami.PromptDialog {
-        id: confirmDelete
+        id: confirmDeleteDialog
         title: i18n("Delete collection?")
         subtitle: i18n("The collection and all its sources will be removed from the database")
         standardButtons: Kirigami.Dialog.Ok | Kirigami.Dialog.Cancel
@@ -118,58 +118,81 @@ Kirigami.Page {
         property string collectionId
         property string collectionName
 
-        onAccepted: {
-            Backend.exports.delete_collection(confirmDelete.collectionId, response => {
-                if (response.errors) {
+        function deleteCollection(id, name) {
+            Backend.exports.delete_collection(id)
+                .then(response => {
+                    if (response.errors) {
+                        showPassiveNotification(
+                            i18n("Failed to delete collection '%1'").arg(name)
+                        );
+                    } else {
+                        showPassiveNotification(
+                            i18n("Deleted collection '%1'").arg(name)
+                        );
+                        loadCollections();
+                    }
+                },
+                error => {
                     showPassiveNotification(
-                        i18n("Failed to delete collection '%1'")
-                            .arg(confirmDelete.collectionName)
+                        i18n("Failed to delete collection '%1'").arg(nameame),
+                        null,
+                        i18n("Retry"),
+                        () => { deleteCollection(id, name); }
                     );
-                } else {
-                    showPassiveNotification(
-                        i18n("Deleted collection '%1'")
-                            .arg(confirmDelete.collectionName)
-                    );
-                    loadCollections();
-                }
-            });
+                });
         }
+
+        onAccepted: deleteCollection(collectionId, collectionName)
     }
 
     Kirigami.PromptDialog {
-        id: addCollection
+        id: addCollectionDialog
         title: i18n("Add Collection")
         standardButtons: Kirigami.Dialog.Ok | Kirigami.Dialog.Cancel
 
-        onOpened: name.forceActiveFocus()
+        onOpened: nameInput.forceActiveFocus()
+
         onAccepted: {
-            Backend.exports.add_collection(name.text, rootPath.text, watch.checked, response => {
-                if (response.errors) {
-                    showPassiveNotification(i18n("Failed to add collection"));
-                } else {
-                    var newCollection = response.data.library.collection.add;
-                    showPassiveNotification(i18n("Added collection '%1'").arg(newCollection.name));
-                    loadCollections();
-                }
-            });
-            name.text = "";
-            rootPath.text = "";
-            watch.checked = true;
+            addCollection(nameInput.text, rootPathInput.text, watchInput.checked);
+            nameInput.text = "";
+            rootPathInput.text = "";
+            watchInput.checked = true;
+        }
+
+        function addCollection(name, rootPath, watch) {
+            Backend.exports.add_collection(name, rootPath, watch)
+                .then(response => {
+                    if (response.errors) {
+                        showPassiveNotification(i18n("Failed to add collection"));
+                    } else {
+                        var newCollection = response.data.library.collection.add;
+                        showPassiveNotification(i18n("Added collection '%1'").arg(newCollection.name));
+                        loadCollections();
+                    }
+                },
+                error => {
+                    showPassiveNotification(
+                        i18n("Failed to add collection"),
+                        null,
+                        i18n("Retry"),
+                        () => { addCollection(name, rootPath, watch); }
+                    );
+                });
         }
 
         Kirigami.FormLayout {
             id: formLayout
 
             Controls.TextField {
-                id: name
+                id: nameInput
                 Kirigami.FormData.label: i18n("Name:")
             }
             Controls.TextField {
-                id: rootPath
+                id: rootPathInput
                 Kirigami.FormData.label: i18n("Root Path:")
             }
             Controls.CheckBox {
-                id: watch
+                id: watchInput
                 Kirigami.FormData.label: i18n("Watch Filesystem?:")
                 checked: true
             }
@@ -177,6 +200,12 @@ Kirigami.Page {
     }
 
     function loadCollections() {
-        Backend.exports.get_collections(response => { collections.model = response.data.library.collections })
+        Backend.exports.get_collections()
+            .then(
+                response => { collections.model = response.data.library.collections },
+                error => {
+                    showPassiveNotification(i18n("Failed to load collections"), null, i18n("Retry"), () => { loadCollections() });
+                }
+            );
     }
 }
