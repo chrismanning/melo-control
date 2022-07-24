@@ -1,7 +1,7 @@
-import AddCollection from '!raw-loader!./../../queries/add_collection.graphql'
-import DeleteCollection from '!raw-loader!./../../queries/delete_collection.graphql'
-import GetCollections from '!raw-loader!./../../queries/get_collections.graphql'
-import GetCollection from '!raw-loader!./../../queries/get_collection.graphql'
+import AddCollection from '!raw-loader!./../../graphql/mutations/add_collection.graphql'
+import DeleteCollection from '!raw-loader!./../../graphql/mutations/delete_collection.graphql'
+import GetCollections from '!raw-loader!./../../graphql/queries/get_collections.graphql'
+import GetCollection from '!raw-loader!./../../graphql/queries/get_collection.graphql'
 
 export function get_collections(callback) {
     const request = {
