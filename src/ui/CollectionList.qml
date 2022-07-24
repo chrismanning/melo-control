@@ -54,7 +54,7 @@ Kirigami.Page {
                     Controls.Label {
                         Layout.fillWidth: true
                         wrapMode: Text.WordWrap
-                        text: modelData.rootUri.replace("file:", "")
+                        text: decodeURI(modelData.rootUri.replace("file:", ""))
                     }
                 }
             }

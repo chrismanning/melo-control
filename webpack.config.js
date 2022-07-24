@@ -2,7 +2,7 @@ module.exports = {
     entry: {
         backend: {
             import: [
-                './src/ui/backend.js',
+                './src/ui/backend.ts',
             ],
             library: {
                 type: 'var',
@@ -17,25 +17,15 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.m?js$/,
+                test: /\.ts$/,
                 exclude: /node_modules/,
                 use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ['@babel/preset-env']
-                    }
-                }
-            },
-            {
-                test: /\/src\/\/(queries|mutations)\/*.graphql/,
-                type: 'asset/source',
-                use: {
-                    loader: 'raw-loader',
-                    options: {
-                        raw: true
-                    }
+                    loader: 'ts-loader'
                 }
             }
         ]
+    },
+    resolve: {
+        extensions: ['.ts','.js','.graphql']
     }
 };
