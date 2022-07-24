@@ -2,6 +2,7 @@ import AddCollection from '!raw-loader!./../../graphql/mutations/add_collection.
 import DeleteCollection from '!raw-loader!./../../graphql/mutations/delete_collection.graphql'
 import GetCollections from '!raw-loader!./../../graphql/queries/get_collections.graphql'
 import GetCollection from '!raw-loader!./../../graphql/queries/get_collection.graphql'
+import {post_request} from "./net";
 
 export function get_collections(callback) {
     const request = {
@@ -14,7 +15,7 @@ export function get_collection(collection_id, callback) {
     const request = {
         query: GetCollection,
         variables: {
-            "idEq": collection_id,
+            "collectionId": collection_id,
         }
     };
     post_request(request, callback);
@@ -40,18 +41,4 @@ export function delete_collection(collection_id, callback) {
         }
     };
     post_request(request, callback);
-}
-
-function post_request(request, callback) {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', "http://localhost:5000/api");
-    xhr.onreadystatechange = () => {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-            console.debug(xhr.responseText);
-            if (callback) {
-                callback(JSON.parse(xhr.responseText));
-            }
-        }
-    };
-    xhr.send(JSON.stringify(request));
 }

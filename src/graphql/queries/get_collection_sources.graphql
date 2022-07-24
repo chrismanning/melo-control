@@ -1,0 +1,42 @@
+query GetCollectionSources($collectionId: String!) {
+    library {
+        collections(where: { id: {EqExpr: {eq: $collectionId}} }) {
+            sourceGroups {
+                groupParentUri
+                coverImage {
+                    downloadUri
+                    fileName
+                }
+                groupTags {
+                    albumArtist
+                    albumTitle
+                    date
+                    totalTracks
+                    discNumber
+                    totalDiscs
+                    genre
+                }
+                sources {
+                    id
+                    sourceUri
+                    downloadUri
+                    format
+                    sourceName
+                    length
+                    metadata {
+                        format
+                        tags {
+                            _0
+                            _1
+                        }
+                        mappedTags {
+                            trackNumber
+                            trackTitle
+                            artistName
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
