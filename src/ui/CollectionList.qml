@@ -6,6 +6,7 @@ import org.kde.kirigami 2.20 as Kirigami
 import "/dist/backend.js" as Backend
 
 Kirigami.Page {
+    id: collectionsPage
 
     title: i18n("Collections")
 
@@ -32,7 +33,7 @@ Kirigami.Page {
     Component {
         id: collectionDelegate
         Kirigami.AbstractCard {
-            showClickFeedback: true
+            id: collectionCard
 
             header: Kirigami.Heading {
                 Layout.fillWidth: true
@@ -45,46 +46,65 @@ Kirigami.Page {
                 implicitWidth: delegateLayout.implicitWidth
                 implicitHeight: delegateLayout.implicitHeight
 
-                GridLayout {
+                RowLayout {
                     id: delegateLayout
-                    anchors {
-                        left: parent.left
-                        top: parent.top
-                        right: parent.right
+                    Kirigami.Icon {
+                        source: modelData.kind === "filesystem" ? "folder" : null
                     }
-                    rowSpacing: Kirigami.Units.largeSpacing
-                    columnSpacing: Kirigami.Units.largeSpacing
-                    columns: 2 //root.wideScreen ? 4 : 2
-
-                    ColumnLayout {
-                        RowLayout {
-                            Kirigami.Icon {
-                                source: modelData.kind === "filesystem" ? "folder" : null
-                            }
-                            Controls.Label {
-                                Layout.fillWidth: true
-                                wrapMode: Text.WordWrap
-                                text: modelData.rootUri.replace("file:", "")
-                            }
-                        }
-                    }
-                    RowLayout {
-                        Controls.Button {
-                            Layout.columnSpan: 2
-                            text: i18n("Rename")
-                            icon.name: "document-edit"
-                        }
-                        Controls.Button {
-                            text: i18n("Delete")
-                            icon.name: "list-remove"
-                            onClicked: {
-                                confirmDelete.collectionId = modelData.id
-                                confirmDelete.collectionName = modelData.name
-                                confirmDelete.open()
-                            }
-                        }
+                    Controls.Label {
+                        Layout.fillWidth: true
+                        wrapMode: Text.WordWrap
+                        text: modelData.rootUri.replace("file:", "")
                     }
                 }
+            }
+
+            footer: Kirigami.ActionToolBar {
+                id: collectionActions
+                position: Controls.ToolBar.Footer
+                actions: [
+                    Kirigami.Action {
+                        id: browseCollectionSourcesAction
+                        text: i18n("Browse Sources")
+                        icon.name: "file-catalog-symbolic"
+                    },
+                    Kirigami.Action {
+                        id: browseCollectionGenresAction
+                        text: i18n("Browse Genres")
+                        icon.name: "view-media-genre"
+                    },
+                    Kirigami.Action {
+                        id: browseCollectionArtistsAction
+                        text: i18n("Browse Artists")
+                        icon.name: "view-media-artist"
+                    },
+                    Kirigami.Action {
+                        id: browseCollectionAlbumsAction
+                        text: i18n("Browse Albums")
+                        icon.name: "view-media-album-cover"
+                    },
+                    Kirigami.Action {
+                        id: browseCollectionTracksAction
+                        text: i18n("Browse Tracks")
+                        icon.name: "view-media-track"
+                    },
+                    Kirigami.Action {
+                        id: renameCollectionAction
+                        text: i18n("Rename")
+                        icon.name: "document-edit"
+                    },
+                    Kirigami.Action {
+                        id: deleteCollectionAction
+                        text: i18n("Delete")
+                        icon.name: "list-remove"
+                        onTriggered: {
+                            confirmDelete.collectionId = modelData.id
+                            confirmDelete.collectionName = modelData.name
+                            confirmDelete.open()
+                        }
+                    }
+
+                ]
             }
         }
     }
