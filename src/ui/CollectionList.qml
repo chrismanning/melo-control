@@ -1,4 +1,4 @@
-import QtQuick 2.6
+import QtQuick 2.15
 import QtQuick.Controls 2.15 as Controls
 import QtQuick.Layouts 1.2
 import org.kde.kirigami 2.20 as Kirigami
@@ -118,19 +118,15 @@ Kirigami.Page {
         property string collectionId
         property string collectionName
 
+        onAccepted: deleteCollection(collectionId, collectionName)
+
         function deleteCollection(id, name) {
             Backend.exports.delete_collection(id)
                 .then(response => {
-                    if (response.errors) {
-                        showPassiveNotification(
-                            i18n("Failed to delete collection '%1'").arg(name)
-                        );
-                    } else {
-                        showPassiveNotification(
-                            i18n("Deleted collection '%1'").arg(name)
-                        );
-                        loadCollections();
-                    }
+                    showPassiveNotification(
+                        i18n("Deleted collection '%1'").arg(name)
+                    );
+                    loadCollections();
                 },
                 error => {
                     showPassiveNotification(
@@ -141,16 +137,36 @@ Kirigami.Page {
                     );
                 });
         }
-
-        onAccepted: deleteCollection(collectionId, collectionName)
     }
 
     Kirigami.PromptDialog {
         id: addCollectionDialog
         title: i18n("Add Collection")
-        standardButtons: Kirigami.Dialog.Ok | Kirigami.Dialog.Cancel
+        // buttons overridden as customFooterActions
+        standardButtons: Controls.Dialog.NoButton
 
         onOpened: nameInput.forceActiveFocus()
+
+        customFooterActions: [
+            Kirigami.Action {
+                id: okAction
+                text: i18n("OK")
+                icon.name: "dialog-ok"
+                enabled: addCollectionDialog.acceptableInput
+                onTriggered: {
+                    if (addCollectionDialog.acceptableInput) {
+                        addCollectionDialog.accept();
+                    }
+                }
+            },
+            Kirigami.Action {
+                text: i18n("Cancel")
+                icon.name: "dialog-cancel"
+                onTriggered: addCollectionDialog.reject()
+            }
+        ]
+
+        readonly property bool acceptableInput: nameInput.acceptableInput && rootPathInput.acceptableInput
 
         onAccepted: {
             addCollection(nameInput.text, rootPathInput.text, watchInput.checked);
@@ -161,14 +177,10 @@ Kirigami.Page {
 
         function addCollection(name, rootPath, watch) {
             Backend.exports.add_collection(name, rootPath, watch)
-                .then(response => {
-                    if (response.errors) {
-                        showPassiveNotification(i18n("Failed to add collection"));
-                    } else {
-                        var newCollection = response.data.library.collection.add;
-                        showPassiveNotification(i18n("Added collection '%1'").arg(newCollection.name));
-                        loadCollections();
-                    }
+                .then(data => {
+                    loadCollections();
+                    var newCollection = data.library.collection.add;
+                    showPassiveNotification(i18n("Added collection '%1'").arg(newCollection.name));
                 },
                 error => {
                     showPassiveNotification(
@@ -186,10 +198,13 @@ Kirigami.Page {
             Controls.TextField {
                 id: nameInput
                 Kirigami.FormData.label: i18n("Name:")
+                onAccepted: okAction.trigger(nameInput)
             }
             Controls.TextField {
                 id: rootPathInput
                 Kirigami.FormData.label: i18n("Root Path:")
+                validator: RegularExpressionValidator { regularExpression: /^\/[^\0]*$/ }
+                onAccepted: okAction.trigger(nameInput)
             }
             Controls.CheckBox {
                 id: watchInput
@@ -202,7 +217,7 @@ Kirigami.Page {
     function loadCollections() {
         Backend.exports.get_collections()
             .then(
-                response => { collections.model = response.data.library.collections },
+                data => { collections.model = data.library.collections },
                 error => {
                     showPassiveNotification(i18n("Failed to load collections"), null, i18n("Retry"), () => { loadCollections() });
                 }
