@@ -115,7 +115,7 @@ input MappedTagsInput {
 }
 
 type Metadata {
-  tags: [PairTextText!]!
+  tags: [Tag!]!
   mappedTags: MappedTags!
   formatId: String!
   format: String!
@@ -147,11 +147,6 @@ input NewCollection {
 
 input NotEqExpr {
   notEq: String!
-}
-
-type PairTextText {
-  _0: String!
-  _1: String!
 }
 
 type Query {
@@ -213,6 +208,11 @@ type StagedSources {
 
 input StartsWithExpr {
   startsWith: String!
+}
+
+type Tag {
+  key: String!
+  value: String!
 }
 
 input TagUpdate {

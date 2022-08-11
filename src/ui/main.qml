@@ -11,6 +11,9 @@ Kirigami.ApplicationWindow {
 
     title: i18nc("@title:window", "Melo")
 
+    minimumWidth: pageStack.defaultColumnWidth
+    minimumHeight: 250 + (Kirigami.Units.largeSpacing * 10)
+
     globalDrawer: Kirigami.GlobalDrawer {
         isMenu: true
         actions: [

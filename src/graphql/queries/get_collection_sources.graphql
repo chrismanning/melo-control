@@ -26,8 +26,8 @@ query GetCollectionSources($collectionId: String!) {
                     metadata {
                         format
                         tags {
-                            _0
-                            _1
+                            value
+                            key
                         }
                         mappedTags {
                             trackNumber

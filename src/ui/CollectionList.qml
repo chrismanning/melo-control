@@ -5,10 +5,12 @@ import org.kde.kirigami 2.20 as Kirigami
 
 import "/dist/backend.js" as Backend
 
-Kirigami.Page {
+Kirigami.ScrollablePage {
     id: collectionsPage
 
-    title: i18n("Collections")
+    title: i18nc("@title", "Collections")
+
+    padding: 10
 
     contextualActions: [
         Kirigami.Action {
@@ -20,9 +22,18 @@ Kirigami.Page {
         }
     ]
 
-    Component.onCompleted: loadCollections()
+    Component.onCompleted: {
+        collectionsPage.refreshing = true;
+    }
 
-    ListView {
+    supportsRefreshing: true
+    onRefreshingChanged: {
+        if (refreshing) {
+            loadCollections();
+        }
+    }
+
+    Kirigami.CardsListView {
         id: collections
         anchors.fill: parent
 
@@ -67,6 +78,13 @@ Kirigami.Page {
                         id: browseCollectionSourcesAction
                         text: i18n("Browse Sources")
                         icon.name: "file-catalog-symbolic"
+                        onTriggered: {
+                            applicationWindow().pageStack.push("qrc:/src/SourceGroupList.qml", {
+                                "collectionId": modelData.id,
+                                "collectionName": modelData.name,
+                                "basePath": modelData.rootUri,
+                            });
+                        }
                     },
                     Kirigami.Action {
                         id: browseCollectionGenresAction
@@ -217,8 +235,12 @@ Kirigami.Page {
     function loadCollections() {
         Backend.exports.get_collections()
             .then(
-                data => { collections.model = data.library.collections },
+                data => {
+                    collectionsPage.refreshing = false;
+                    collections.model = data.library.collections;
+                },
                 error => {
+                    collectionsPage.refreshing = false;
                     showPassiveNotification(i18n("Failed to load collections"), null, i18n("Retry"), () => { loadCollections() });
                 }
             );
