@@ -45,6 +45,9 @@ fn main() -> Result<()> {
 
     // Register the `Greeter` struct to QML
     qml_register_type::<Greeter>(cstr!("Greeter"), 1, 0, cstr!("Greeter"));
+
+    qsyncable_sys::register_qml_types();
+
     // Create a QML engine from rust
     let mut engine = QmlEngine::new();
     KLocalizedContext::init_from_engine(&engine);

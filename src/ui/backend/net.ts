@@ -17,12 +17,14 @@ export function post_request<Response, Variables>(request: GraphQLRequest<Variab
                         if ("data" in response) {
                             resolve(response.data as Response);
                         } else {
-                            reject(new Error("graphql error"))
+                            reject("graphql error");
                         }
                     }
                     catch (e) {
-                        reject(e);
+                        reject(`${e}`);
                     }
+                } else {
+                    reject("server error");
                 }
             }
         };
@@ -35,6 +37,7 @@ export function post_request<Response, Variables>(request: GraphQLRequest<Variab
         xhr.onabort = () => {
             reject("abort");
         };
+        xhr.setRequestHeader("Content-Type", "application/json");
         xhr.send(JSON.stringify(request));
     });
 }

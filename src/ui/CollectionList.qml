@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as Controls
 import QtQuick.Layouts 1.2
 import org.kde.kirigami 2.20 as Kirigami
+import QSyncable 1.0
 
 import "/dist/backend.js" as Backend
 
@@ -38,6 +39,7 @@ Kirigami.ScrollablePage {
         anchors.fill: parent
 
         delegate: collectionDelegate
+        model: JsonListModel {}
         onModelChanged: console.debug("collections model changed")
     }
 
@@ -49,7 +51,7 @@ Kirigami.ScrollablePage {
             header: Kirigami.Heading {
                 Layout.fillWidth: true
                 level: 1
-                text: modelData.name
+                text: model.name
             }
 
             contentItem: Item {
@@ -60,12 +62,12 @@ Kirigami.ScrollablePage {
                 RowLayout {
                     id: delegateLayout
                     Kirigami.Icon {
-                        source: modelData.kind === "filesystem" ? "folder" : null
+                        source: model.kind === "filesystem" ? "folder" : null
                     }
                     Controls.Label {
                         Layout.fillWidth: true
                         wrapMode: Text.WordWrap
-                        text: decodeURI(modelData.rootUri.replace("file:", ""))
+                        text: decodeURI(model.rootUri.replace("file:", ""))
                     }
                 }
             }
@@ -80,9 +82,9 @@ Kirigami.ScrollablePage {
                         icon.name: "file-catalog-symbolic"
                         onTriggered: {
                             applicationWindow().pageStack.push("qrc:/src/SourceGroupList.qml", {
-                                "collectionId": modelData.id,
-                                "collectionName": modelData.name,
-                                "basePath": modelData.rootUri,
+                                "collectionId": model.id,
+                                "collectionName": model.name,
+                                "basePath": model.rootUri,
                             });
                         }
                     },
@@ -116,8 +118,8 @@ Kirigami.ScrollablePage {
                         text: i18n("Delete")
                         icon.name: "list-remove"
                         onTriggered: {
-                            confirmDeleteDialog.collectionId = modelData.id
-                            confirmDeleteDialog.collectionName = modelData.name
+                            confirmDeleteDialog.collectionId = model.id
+                            confirmDeleteDialog.collectionName = model.name
                             confirmDeleteDialog.open()
                         }
                     }
@@ -237,7 +239,7 @@ Kirigami.ScrollablePage {
             .then(
                 data => {
                     collectionsPage.refreshing = false;
-                    collections.model = data.library.collections;
+                    collections.model.source = data.library.collections;
                 },
                 error => {
                     collectionsPage.refreshing = false;

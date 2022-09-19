@@ -22,6 +22,8 @@
     "@graphql-codegen/cli": "^2.9.1",
     "@graphql-codegen/typescript": "^2.7.2",
     "@graphql-codegen/typescript-operations": "^2.5.2",
+    "@types/diff": "^5.0.2",
+    "diff": "^5.1.0",
     "graphql-zeus": "^5.1.7",
     "raw-loader": "^4.0.2",
     "ts-loader": "^9.3.1",

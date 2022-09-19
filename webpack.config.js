@@ -9,6 +9,15 @@ module.exports = {
                 name: 'exports',
             }
         },
+        diff: {
+            import: [
+                './src/ui/diff.ts',
+            ],
+            library: {
+                type: 'var',
+                name: 'exports',
+            }
+        }
     },
     output: {
         filename: '[name].js',
@@ -17,11 +26,15 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.ts$/,
-                exclude: /node_modules/,
-                use: {
-                    loader: 'ts-loader'
-                }
+                test: /(?!compiler_depend)\.ts$/,
+                exclude: [
+                    /compiler_depend\.ts/,
+                    /node_modules/,
+                    /qsyncable/,
+                    /target/,
+                    /build/
+                ],
+                loader: 'ts-loader'
             }
         ]
     },

@@ -5,8 +5,10 @@ qrc!(pub init_resources,
         "main.qml",
         "CollectionList.qml",
         "SourceGroupList.qml",
+        "transform/PreviewTransform.qml",
     },
     "dist" as "dist" {
         "backend.js",
+        "diff.js",
     }
 );

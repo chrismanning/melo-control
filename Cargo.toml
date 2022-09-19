@@ -1,7 +1,7 @@
 [package]
 name = "melo-control"
 version = "0.1.0"
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -21,6 +21,7 @@ simple_logger = "1.11.0"
 simplelog = "0.10.0"
 tokio = { version = "1", features = ["full"] }
 uuid = { version = "1", features = ["v4"] }
+qsyncable-sys = { git = "https://github.com/chrismanning/qsyncable-sys.git", rev = "8d546b879e7745d38bed4ef53148ba68afe61e91" }
 
 [dev-dependencies]
 insta = "1"

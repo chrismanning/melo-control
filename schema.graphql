@@ -66,9 +66,8 @@ input InExpr {
 
 type LibraryMutation {
   stageSources(uris: [String!]!): StagedSources!
-  transformSources(transformations: [Transform!]!, where: SourceWhere): UpdatedSources!
-  previewTransformSources(transformations: [Transform!]!, where: SourceWhere): UpdatedSources!
-  updateSources(updates: [SourceUpdate!]!): UpdatedSources!
+  transformSources(transformations: [Transform!]!, where: SourceWhere): [UpdateSourceResult!]!
+  updateSources(updates: [SourceUpdate!]!): [UpdateSourceResult!]!
   collection: CollectionMutation!
 }
 
@@ -115,7 +114,7 @@ input MappedTagsInput {
 }
 
 type Metadata {
-  tags: [Tag!]!
+  tags: [TagPair!]!
   mappedTags: MappedTags!
   formatId: String!
   format: String!
@@ -132,7 +131,8 @@ input MetadataTransformation {
 }
 
 input Move {
-  movePattern: String!
+  destPattern: String!
+  collectionRef: String
 }
 
 type Mutation {
@@ -172,9 +172,11 @@ type Source {
   metadata: Metadata!
   sourceName: String!
   sourceUri: String!
+  filePath: String
   downloadUri: String!
   length: Float!
   coverImage: Image
+  previewTransform(transformations: [Transform!]!): UpdateSourceResult!
 }
 
 type SourceGroup {
@@ -197,7 +199,8 @@ input SourceWhere {
 }
 
 input SplitMultiTrackFile {
-  movePattern: String!
+  destPattern: String!
+  collectionRef: String
 }
 
 type StagedSources {
@@ -210,7 +213,7 @@ input StartsWithExpr {
   startsWith: String!
 }
 
-type Tag {
+type TagPair {
   key: String!
   value: String!
 }
@@ -232,10 +235,6 @@ input Transform {
 
 type UpdatedSource {
   _0: Source!
-}
-
-type UpdatedSources {
-  results: [UpdateSourceResult!]!
 }
 
 input UpdatePair {

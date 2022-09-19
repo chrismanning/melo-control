@@ -2,6 +2,9 @@
 import QtQuick.Controls 2.15 as Controls
 import QtQuick.Layouts 1.2
 import org.kde.kirigami 2.20 as Kirigami
+import QSyncable 1.0
+
+import "transform"
 
 import "/dist/backend.js" as Backend
 
@@ -39,6 +42,7 @@ Kirigami.ScrollablePage {
         id: sourceGroups
         anchors.fill: parent
 
+        model: JsonListModel {}
         onModelChanged: console.debug("source group model changed")
         delegate: sourceGroupDelegate
     }
@@ -112,6 +116,7 @@ Kirigami.ScrollablePage {
                     id: coverInfoLayout
                     Layout.columnSpan: 1
                     Layout.alignment: Qt.AlignTop
+                    Layout.maximumWidth: 250
 
                     Item {
                         id: coverPlaceholder
@@ -127,7 +132,7 @@ Kirigami.ScrollablePage {
                             fillMode: Image.PreserveAspectFit
                             cache: false
                             asynchronous: true
-                            source: modelData.coverImage && modelData.coverImage.downloadUri ? ("http://localhost:5000" + modelData.coverImage.downloadUri) : ""
+                            source: model.coverImage && model.coverImage.downloadUri ? ("http://localhost:5000" + model.coverImage.downloadUri) : ""
                         }
                         Rectangle {
                             anchors.fill: parent
@@ -138,18 +143,42 @@ Kirigami.ScrollablePage {
 
                     Controls.Label {
                         Layout.alignment: Qt.AlignLeft
-                        text: modelData.sources.length + " tracks"
+                        text: model.sources.length + " tracks"
                     }
 
                     Controls.Label {
                         Layout.alignment: Qt.AlignLeft
                         text: {
                             let totalLength = 0;
-                            for (let source in modelData.sources) {
+                            for (let source in model.sources) {
                                 totalLength += source.length;
                             }
                             return ("Total length: " + totalLength).replace(".", ":")
                         }
+                    }
+
+                    Kirigami.ActionToolBar {
+                        alignment: Qt.AlignHCenter
+                        actions: [
+                            Kirigami.Action {
+                                id: transformAction
+                                text: i18n("Transform")
+                                onTriggered: {
+                                    console.log("Transform triggered");
+                                    applicationWindow().pageStack.pushDialogLayer("qrc:/src/transform/PreviewTransform.qml", {
+                                        'sources': model.sources,
+                                    });
+                                }
+                            },
+                            Kirigami.Action {
+                                id: deleteAction
+                                text: i18n("Delete")
+                                icon.name: "edit-delete"
+                                onTriggered: {
+                                    console.log("Delete triggered");
+                                }
+                            }
+                        ]
                     }
                 }
 
@@ -166,9 +195,9 @@ Kirigami.ScrollablePage {
                         Kirigami.Heading {
                             id: albumTitle
 
-                            Layout.maximumWidth: delegateLayout.width - ((delegateLayout.columns - 1) * coverPlaceholder.width) - albumDate.width - Kirigami.Units.largeSpacing
+                            Layout.maximumWidth: delegateLayout.width - ((delegateLayout.columns - 1) * coverInfoLayout.width) - albumDate.width - Kirigami.Units.largeSpacing
                             elide: Text.ElideRight
-                            text: modelData.groupTags.albumTitle
+                            text: model.groupTags.albumTitle || decodeURI(model.groupParentUri.replace('%26', '&').replace('file:', ''))
                             level: 1
 
                             MouseArea {
@@ -181,7 +210,7 @@ Kirigami.ScrollablePage {
                         }
                         Kirigami.Heading {
                             id: albumDate
-                            text: '(' + modelData.groupTags.date + ')'
+                            text: model.groupTags.date ? '(' + model.groupTags.date + ')' : null
                             level: 2
                             color: Kirigami.Theme.disabledTextColor
                         }
@@ -198,19 +227,23 @@ Kirigami.ScrollablePage {
                         elide: Text.ElideRight
                         level: 1
                         text: {
-                            const artists = modelData.groupTags.albumArtist;
+                            const artists = model.groupTags.albumArtist;
                             let text = '';
-                            let i = 0;
-                            do {
-                                if (i > 0) {
-                                    text += ', '
-                                }
-                                text += artists[0]
-                                i++;
-                            } while (i < artists.length - 1);
+                            if (artists) {
+                                let i = 0;
+                                do {
+                                    if (i > 0) {
+                                        text += ', ';
+                                    }
+                                    text += artists[0] ? artists[0] : '-';
+                                    i++;
+                                } while (i < artists.length - 1);
 
-                            if (i < artists.length) {
-                                text += ' & ' + artists[i]
+                                if (i < artists.length) {
+                                    text += ' & ' + artists[i];
+                                }
+                            } else {
+                                text = 'unknown artist';
                             }
 
                             return text;
@@ -229,9 +262,10 @@ Kirigami.ScrollablePage {
                         Layout.fillWidth: true
                     }
 
+                    readonly property var groupModel: model
                     Repeater {
                         id: tracks
-                        model: modelData.sources
+                        model: parent.groupModel.sources
                         Layout.fillWidth: true
                         Layout.fillHeight: true
 
@@ -245,7 +279,7 @@ Kirigami.ScrollablePage {
 
                                     text: {
                                         let num = modelData.metadata.mappedTags.trackNumber;
-                                        return num.slice(0, Math.max(2, num.length)).padStart(2, '0');
+                                        return num ? num.slice(0, Math.max(2, num.length)).padStart(2, '0') : '-';
                                     }
                                 }
                                 Controls.Label {
@@ -254,7 +288,7 @@ Kirigami.ScrollablePage {
                                     Layout.fillWidth: true
                                     elide: Text.ElideRight
 
-                                    text: modelData.metadata.mappedTags.trackTitle
+                                    text: modelData.metadata.mappedTags.trackTitle || modelData.sourceName
 
                                     Controls.ToolTip.visible: trackTitle.truncated && trackItem.containsMouse
                                     Controls.ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
@@ -265,7 +299,6 @@ Kirigami.ScrollablePage {
                     }
                 }
             }
-
         }
     }
 
@@ -274,11 +307,11 @@ Kirigami.ScrollablePage {
             .then(
                 response => {
                     sourcesPage.refreshing = false;
-                    sourceGroups.model = response.library.collections[0].sourceGroups;
+                    sourceGroups.model.source = response.library.collections[0].sourceGroups;
                 },
                 error => {
                     sourcesPage.refreshing = false;
-                    showPassiveNotification(i18n("Failed to load collections"), null, i18n("Retry"), () => { loadCollections() });
+                    showPassiveNotification(i18n("Failed to load sources"), null, i18n("Retry"), () => { loadSourceGroups() });
                 }
             );
     }

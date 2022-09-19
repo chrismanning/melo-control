@@ -18,10 +18,10 @@ query GetCollectionSources($collectionId: String!) {
                 }
                 sources {
                     id
-                    sourceUri
                     downloadUri
                     format
                     sourceName
+                    filePath
                     length
                     metadata {
                         format

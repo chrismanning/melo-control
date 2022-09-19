@@ -1,0 +1,39 @@
+query PreviewTransformSources($srcIds: [String!]!, $movePattern: String!) {
+    library {
+        sources(where: {id: {InExpr: {in: $srcIds}}}) {
+            previewTransform(transformations: [
+                {
+                    SplitMultiTrackFile: {
+                        destPattern: $movePattern
+                    }
+                },
+                {
+                    Move: {
+                        destPattern: $movePattern
+                    }
+                }
+            ]) {
+                __typename
+                ... on UpdatedSource {
+                    _0 {
+                        id
+                        downloadUri
+                        sourceName
+                        filePath
+                        metadata {
+                            format
+                            tags {
+                                key
+                                value
+                            }
+                        }
+                    }
+                }
+                ... on FailedSourceUpdate {
+                    id
+                    msg
+                }
+            }
+        }
+    }
+}
