@@ -149,11 +149,15 @@ Kirigami.ScrollablePage {
                     Controls.Label {
                         Layout.alignment: Qt.AlignLeft
                         text: {
-                            let totalLength = 0;
-                            for (let source in model.sources) {
-                                totalLength += source.length;
+                            let ms = 0.0;
+                            for (const source of model.sources) {
+                                if (source["length"]) {
+                                    ms += source["length"];
+                                }
                             }
-                            return ("Total length: " + totalLength).replace(".", ":")
+                            const s = ms / 1000;
+                            const totalLength = `${Math.floor(s / 60)}:`+ `${Math.floor(s % 60)}`.padStart(2, '0');
+                            return ("Total length: " + totalLength)
                         }
                     }
 
@@ -293,6 +297,15 @@ Kirigami.ScrollablePage {
                                     Controls.ToolTip.visible: trackTitle.truncated && trackItem.containsMouse
                                     Controls.ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
                                     Controls.ToolTip.text: trackTitle.text
+                                }
+                                Controls.Label {
+                                    id: trackLength
+                                    Layout.alignment: Qt.AlignRight
+                                    color: Kirigami.Theme.disabledTextColor
+                                    text: {
+                                        const s = modelData["length"] / 1000;
+                                        return `${Math.floor(s / 60)}:` + `${Math.floor(s % 60)}`.padStart(2, '0');
+                                    }
                                 }
                             }
                         }
