@@ -1,0 +1,27 @@
+mutation TransformSources($srcIds: [String!]!, $movePattern: String!) {
+    library {
+        transformSources(where: {id: {InExpr: {in: $srcIds}}}, transformations: [
+            {
+                SplitMultiTrackFile: {
+                    destPattern: $movePattern
+                }
+            },
+            {
+                Move: {
+                    destPattern: $movePattern
+                }
+            }
+        ]) {
+            __typename
+            ... on UpdatedSource {
+                _0 {
+                    id
+                }
+            }
+            ... on FailedSourceUpdate {
+                id
+                msg
+            }
+        }
+    }
+}

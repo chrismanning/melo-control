@@ -235,7 +235,7 @@ export type Source = {
   filePath?: Maybe<Scalars['String']>;
   format: Scalars['String'];
   id: Scalars['SourceRef'];
-  length: Scalars['Float'];
+  length?: Maybe<Scalars['Float']>;
   metadata: Metadata;
   previewTransform: UpdateSourceResult;
   sourceName: Scalars['String'];
@@ -346,6 +346,14 @@ export type DeleteCollectionMutationVariables = Exact<{
 
 export type DeleteCollectionMutation = { __typename?: 'Mutation', library: { __typename?: 'LibraryMutation', collection: { __typename?: 'CollectionMutation', delete: Unit } } };
 
+export type TransformSourcesMutationVariables = Exact<{
+  srcIds: Array<Scalars['String']> | Scalars['String'];
+  movePattern: Scalars['String'];
+}>;
+
+
+export type TransformSourcesMutation = { __typename?: 'Mutation', library: { __typename?: 'LibraryMutation', transformSources: Array<{ __typename: 'FailedSourceUpdate', id: any, msg: string } | { __typename: 'UpdatedSource', _0: { __typename?: 'Source', id: any } }> } };
+
 export type GetCollectionQueryVariables = Exact<{
   collectionId: Scalars['String'];
 }>;
@@ -358,7 +366,7 @@ export type GetCollectionSourcesQueryVariables = Exact<{
 }>;
 
 
-export type GetCollectionSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', collections: Array<{ __typename?: 'Collection', sourceGroups: Array<{ __typename?: 'SourceGroup', groupParentUri: string, coverImage?: { __typename?: 'Image', downloadUri: string, fileName: string } | null, groupTags: { __typename?: 'GroupTags', albumArtist?: Array<string> | null, albumTitle?: string | null, date?: string | null, totalTracks?: string | null, discNumber?: string | null, totalDiscs?: string | null, genre?: Array<string> | null }, sources: Array<{ __typename?: 'Source', id: any, downloadUri: string, format: string, sourceName: string, filePath?: string | null, length: number, metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', value: string, key: string }>, mappedTags: { __typename?: 'MappedTags', trackNumber?: string | null, trackTitle?: string | null, artistName?: Array<string> | null } } }> }> }> } };
+export type GetCollectionSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', collections: Array<{ __typename?: 'Collection', sourceGroups: Array<{ __typename?: 'SourceGroup', groupParentUri: string, coverImage?: { __typename?: 'Image', downloadUri: string, fileName: string } | null, groupTags: { __typename?: 'GroupTags', albumArtist?: Array<string> | null, albumTitle?: string | null, date?: string | null, totalTracks?: string | null, discNumber?: string | null, totalDiscs?: string | null, genre?: Array<string> | null }, sources: Array<{ __typename?: 'Source', id: any, downloadUri: string, format: string, sourceName: string, filePath?: string | null, length?: number | null, metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', value: string, key: string }>, mappedTags: { __typename?: 'MappedTags', trackNumber?: string | null, trackTitle?: string | null, artistName?: Array<string> | null } } }> }> }> } };
 
 export type GetCollectionsQueryVariables = Exact<{ [key: string]: never; }>;
 

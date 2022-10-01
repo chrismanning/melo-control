@@ -21,16 +21,52 @@ Kirigami.ScrollablePage {
     supportsRefreshing: true
     onRefreshingChanged: {
         if (refreshing) {
-            previewTransform()
+            if (applying) {
+                transforms.model.remove(0, transforms.model.count);
+                applyTransform();
+            } else {
+                previewTransform();
+            }
         }
     }
+    property bool applying: false
 
     ListView {
         id: transforms
 
-        model: JsonListModel {}
+        model: JsonListModel {
+            keyField: "originalId"
+            fields: [
+                "original",
+                "transformed",
+                "error"
+            ]
+        }
 
         delegate: transformDelegate
+    }
+
+    actions {
+        left: Kirigami.Action {
+            id: cancelAction
+            text: "Cancel"
+
+            icon.name: "dialog-cancel"
+            onTriggered: {
+                closeDialog();
+            }
+        }
+        right: Kirigami.Action {
+            id: confirmAction
+            text: "Apply"
+
+            icon.name: "dialog-ok"
+            onTriggered: {
+                confirmAction.enabled = false;
+                previewTransformPage.applying = true;
+                previewTransformPage.refreshing = true;
+            }
+        }
     }
 
     Component {
@@ -270,6 +306,35 @@ Kirigami.ScrollablePage {
                             i18n("Failed to preview transformations"), null,
                             i18n("Retry"), () => {
                                 previewTransform();
+                            });
+                    })
+    }
+
+    function applyTransform() {
+        Backend.exports
+            .transform_sources(
+                    previewTransformPage.sources,
+                    "%album_artist[ (%artist_origin)]/%4original_release_year - %album_title/%02track_number - %track_title"
+                 ).then(
+                    transformedSources => {
+                        previewTransformPage.refreshing = false;
+                        previewTransformPage.applying = false;
+                        if (transformedSources.find(agg => !!agg.error)) {
+                            console.log(JSON.stringify(transformedSources));
+                            transforms.model.source = transformedSources;
+                        } else {
+                            showPassiveNotification(i18n("Successfully transformed sources"));
+                            closeDialog();
+                        }
+                    }).catch(error => {
+                        console.error(error);
+                        previewTransformPage.applying = false;
+                        previewTransformPage.refreshing = false;
+                        confirmAction.enabled = false;
+                        showPassiveNotification(
+                            i18n("Failed to transformation sources"), null,
+                            i18n("Retry"), () => {
+                                applyTransform();
                             });
                     })
     }

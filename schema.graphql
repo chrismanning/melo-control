@@ -174,7 +174,7 @@ type Source {
   sourceUri: String!
   filePath: String
   downloadUri: String!
-  length: Float!
+  length: Float
   coverImage: Image
   previewTransform(transformations: [Transform!]!): UpdateSourceResult!
 }
