@@ -82,6 +82,8 @@ Kirigami.ScrollablePage {
 
             anchors.margins: Kirigami.Units.largeSpacing
 
+            readonly property var currentGroup: model
+
             GridLayout {
                 id: delegateLayout
                 anchors {
@@ -138,6 +140,19 @@ Kirigami.ScrollablePage {
                             anchors.fill: parent
                             visible: !coverImage.visible || !coverImage.source
                             color: Kirigami.Theme.highlightColor
+                        }
+                    }
+
+                    Flow {
+                        spacing: Kirigami.Units.smallSpacing
+                        Repeater {
+                            model: currentGroup.groupTags.genre
+
+                            Kirigami.Chip {
+                                text: modelData
+                                closable: false
+                                checkable: false
+                            }
                         }
                     }
 
