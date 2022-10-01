@@ -72,10 +72,10 @@ Kirigami.ScrollablePage {
             }
 
             width: sourceGroups.width - (anchors.leftMargin * 2) - (anchors.rightMargin * 2)
-//            width: sourceGroups.width - anchors.leftMargin - anchors.rightMargin
-//            implicitWidth: Math.max(background.implicitWidth, delegateLayout.implicitWidth) + (Kirigami.Units.largeSpacing * 2)
-
-            implicitHeight: Math.max(coverInfoLayout.implicitHeight, Math.max(background.implicitHeight, delegateLayout.implicitHeight)) + (Kirigami.Units.largeSpacing * 2)
+            height: (delegateLayout.columns == 1
+                            ? (coverInfoLayout.implicitHeight + groupHeading.implicitHeight)
+                            : Math.max(coverInfoLayout.implicitHeight, groupHeading.implicitHeight))
+                              + (Kirigami.Units.largeSpacing * 2)
 
             Kirigami.Theme.inherit: false
             Kirigami.Theme.colorSet: Kirigami.Theme.View
@@ -123,9 +123,8 @@ Kirigami.ScrollablePage {
                     Item {
                         id: coverPlaceholder
                         Layout.alignment: Qt.AlignTop | Qt.AlignHCenter
-                        Layout.maximumWidth: 250
-                        Layout.preferredWidth: 250
-                        Layout.preferredHeight: 250
+                        width: 250
+                        height: 250
 
                         Image {
                             id: coverImage
@@ -134,6 +133,7 @@ Kirigami.ScrollablePage {
                             fillMode: Image.PreserveAspectFit
                             cache: false
                             asynchronous: true
+                            mipmap: true
                             source: model.coverImage && model.coverImage.downloadUri ? ("http://localhost:5000" + model.coverImage.downloadUri) : ""
                         }
                         Rectangle {
@@ -144,6 +144,7 @@ Kirigami.ScrollablePage {
                     }
 
                     Flow {
+                        Layout.alignment: Qt.AlignHCenter
                         spacing: Kirigami.Units.smallSpacing
                         Repeater {
                             model: currentGroup.groupTags.genre
