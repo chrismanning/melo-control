@@ -33,8 +33,18 @@ input EditMetadata {
   metadataTransform: MetadataTransformation!
 }
 
+type EmbeddedImage {
+  imageType: PictureTypeWrapper!
+  downloadUri: String!
+}
+
 input EqExpr {
   eq: String!
+}
+
+type ExternalImage {
+  fileName: String!
+  downloadUri: String!
 }
 
 type FailedSourceUpdate {
@@ -55,10 +65,7 @@ type GroupTags {
   musicbrainzAlbumId: String
 }
 
-type Image {
-  fileName: String!
-  downloadUri: String!
-}
+union Image = ExternalImage | EmbeddedImage
 
 input InExpr {
   in: [String!]!
@@ -148,6 +155,8 @@ input NewCollection {
 input NotEqExpr {
   notEq: String!
 }
+
+scalar PictureTypeWrapper
 
 type Query {
   library: LibraryQuery!

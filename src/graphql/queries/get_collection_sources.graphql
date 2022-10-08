@@ -4,8 +4,14 @@ query GetCollectionSources($collectionId: String!) {
             sourceGroups {
                 groupParentUri
                 coverImage {
-                    downloadUri
-                    fileName
+                    ... on ExternalImage {
+                        desc: fileName
+                        downloadUri
+                    }
+                    ... on EmbeddedImage {
+                        desc: imageType
+                        downloadUri
+                    }
                 }
                 groupTags {
                     albumArtist
