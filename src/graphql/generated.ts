@@ -11,6 +11,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   CollectionRef: any;
+  PictureTypeWrapper: any;
   SourceRef: any;
 };
 
@@ -60,8 +61,20 @@ export type EditMetadata = {
   metadataTransform: MetadataTransformation;
 };
 
+export type EmbeddedImage = {
+  __typename?: 'EmbeddedImage';
+  downloadUri: Scalars['String'];
+  imageType: Scalars['PictureTypeWrapper'];
+};
+
 export type EqExpr = {
   eq: Scalars['String'];
+};
+
+export type ExternalImage = {
+  __typename?: 'ExternalImage';
+  downloadUri: Scalars['String'];
+  fileName: Scalars['String'];
 };
 
 export type FailedSourceUpdate = {
@@ -84,11 +97,7 @@ export type GroupTags = {
   totalTracks?: Maybe<Scalars['String']>;
 };
 
-export type Image = {
-  __typename?: 'Image';
-  downloadUri: Scalars['String'];
-  fileName: Scalars['String'];
-};
+export type Image = EmbeddedImage | ExternalImage;
 
 export type InExpr = {
   in: Array<Scalars['String']>;
@@ -366,7 +375,7 @@ export type GetCollectionSourcesQueryVariables = Exact<{
 }>;
 
 
-export type GetCollectionSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', collections: Array<{ __typename?: 'Collection', sourceGroups: Array<{ __typename?: 'SourceGroup', groupParentUri: string, coverImage?: { __typename?: 'Image', downloadUri: string, fileName: string } | null, groupTags: { __typename?: 'GroupTags', albumArtist?: Array<string> | null, albumTitle?: string | null, date?: string | null, totalTracks?: string | null, discNumber?: string | null, totalDiscs?: string | null, genre?: Array<string> | null }, sources: Array<{ __typename?: 'Source', id: any, downloadUri: string, format: string, sourceName: string, filePath?: string | null, length?: number | null, metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', value: string, key: string }>, mappedTags: { __typename?: 'MappedTags', trackNumber?: string | null, trackTitle?: string | null, artistName?: Array<string> | null } } }> }> }> } };
+export type GetCollectionSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', collections: Array<{ __typename?: 'Collection', sourceGroups: Array<{ __typename?: 'SourceGroup', groupParentUri: string, coverImage?: { __typename?: 'EmbeddedImage', downloadUri: string } | { __typename?: 'ExternalImage', downloadUri: string } | null, groupTags: { __typename?: 'GroupTags', albumArtist?: Array<string> | null, albumTitle?: string | null, date?: string | null, totalTracks?: string | null, discNumber?: string | null, totalDiscs?: string | null, genre?: Array<string> | null }, sources: Array<{ __typename?: 'Source', id: any, downloadUri: string, format: string, sourceName: string, filePath?: string | null, length?: number | null, metadata: { __typename?: 'Metadata', format: string, mappedTags: { __typename?: 'MappedTags', trackNumber?: string | null, trackTitle?: string | null, artistName?: Array<string> | null } } }> }> }> } };
 
 export type GetCollectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -379,4 +388,4 @@ export type PreviewTransformSourcesQueryVariables = Exact<{
 }>;
 
 
-export type PreviewTransformSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', sources: Array<{ __typename?: 'Source', previewTransform: { __typename: 'FailedSourceUpdate', id: any, msg: string } | { __typename: 'UpdatedSource', _0: { __typename?: 'Source', id: any, downloadUri: string, sourceName: string, filePath?: string | null, metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', key: string, value: string }> } } } }> } };
+export type PreviewTransformSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', sources: Array<{ __typename?: 'Source', metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', key: string, value: string }> }, previewTransform: { __typename: 'FailedSourceUpdate', id: any, msg: string } | { __typename: 'UpdatedSource', _0: { __typename?: 'Source', id: any, downloadUri: string, sourceName: string, filePath?: string | null, metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', key: string, value: string }> } } } }> } };

@@ -6,7 +6,7 @@ export interface GraphQLRequest<Variables> {
 export function post_request<Response, Variables>(request: GraphQLRequest<Variables>): Promise<Response> {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', "http://localhost:5000/api");
+        xhr.open('POST', "http://192.168.1.166:5000/api");
         xhr.onreadystatechange = () => {
             console.debug("readystate: ", xhr.readyState);
             if (xhr.readyState === XMLHttpRequest.DONE) {

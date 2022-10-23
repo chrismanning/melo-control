@@ -1,6 +1,13 @@
 query PreviewTransformSources($srcIds: [String!]!, $movePattern: String!) {
     library {
         sources(where: {id: {InExpr: {in: $srcIds}}}) {
+            metadata {
+                format
+                tags {
+                    key
+                    value
+                }
+            }
             previewTransform(transformations: [
                 {
                     SplitMultiTrackFile: {

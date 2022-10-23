@@ -1,7 +1,3 @@
-enum Unit {
-  Unit
-}
-
 type Collection {
   id: CollectionRef!
   rootUri: String!
@@ -240,6 +236,10 @@ input Transform {
   Move: Move
   SplitMultiTrackFile: SplitMultiTrackFile
   EditMetadata: EditMetadata
+}
+
+enum Unit {
+  Unit
 }
 
 type UpdatedSource {

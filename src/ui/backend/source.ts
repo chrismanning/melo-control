@@ -49,23 +49,23 @@ export function preview_transform_sources(sources: Partial<Source>[], movePatter
     return post_request<PreviewTransformSourcesQuery, PreviewTransformSourcesQueryVariables>(request)
       .then(response => {
           return response.library.sources.map((source, index) => {
-              const {previewTransform} = source;
+              const {previewTransform, metadata} = source;
               if (previewTransform.__typename === 'UpdatedSource') {
                   return {
                       originalId: sources[index].id,
-                      original: sources[index],
+                      original: {...sources[index], metadata},
                       transformed: previewTransform._0
                   } as SourceTransformAggregate;
               } else if (previewTransform.__typename === 'FailedSourceUpdate') {
                   return {
                       originalId: sources[index].id,
-                      original: sources[index],
-                      error: previewTransform.id
+                      original: {...sources[index], metadata},
+                      error: previewTransform
                   } as SourceTransformAggregate;
               } else {
                   return {
                       originalId: sources[index].id,
-                      original: sources[index]
+                      original: {...sources[index], metadata}
                   } as SourceTransformAggregate;
               }
           });

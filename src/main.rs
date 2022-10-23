@@ -21,20 +21,6 @@ const VERTICAL_WIDGET_SPACING: f64 = 20.0;
 const TEXT_BOX_WIDTH: f64 = 200.0;
 // const WINDOW_TITLE: LocalizedString<AppState> = LocalizedString::new("Melo Control");
 
-#[derive(QObject, Default)]
-struct Greeter {
-    // Specify the base class with the qt_base_class macro
-    base: qt_base_class!(trait QObject),
-    // Declare `name` as a property usable from Qt
-    name: qt_property!(QString; NOTIFY name_changed),
-    // Declare a signal
-    name_changed: qt_signal!(),
-    // And even a slot
-    compute_greetings: qt_method!(fn compute_greetings(&self, verb: String) -> QString {
-        format!("{} {}", verb, self.name.to_string()).into()
-    })
-}
-
 fn main() -> Result<()> {
     qmetaobject::log::init_qt_to_rust();
     SimpleLogger::new()
@@ -43,8 +29,7 @@ fn main() -> Result<()> {
         .init()
         .unwrap();
 
-    // Register the `Greeter` struct to QML
-    qml_register_type::<Greeter>(cstr!("Greeter"), 1, 0, cstr!("Greeter"));
+    qml_register_type::<ui::StreamHandler>(cstr!("StreamHandler"), 1, 0, cstr!("StreamHandler"));
 
     qsyncable_sys::register_qml_types();
 

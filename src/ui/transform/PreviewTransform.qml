@@ -14,6 +14,8 @@ Kirigami.ScrollablePage {
 
     required property var sources
 
+    title: i18n("Apply transformations?")
+
     Component.onCompleted: {
         previewTransformPage.refreshing = true
     }
@@ -49,7 +51,7 @@ Kirigami.ScrollablePage {
     actions {
         left: Kirigami.Action {
             id: cancelAction
-            text: "Cancel"
+            text: i18n("Cancel")
 
             icon.name: "dialog-cancel"
             onTriggered: {
@@ -58,7 +60,7 @@ Kirigami.ScrollablePage {
         }
         right: Kirigami.Action {
             id: confirmAction
-            text: "Apply"
+            text: i18n("Apply")
 
             icon.name: "dialog-ok"
             onTriggered: {
@@ -113,13 +115,13 @@ Kirigami.ScrollablePage {
 
                 Kirigami.InlineMessage {
                     Layout.fillWidth: true
-                    text: model.error ? `Failed to transform source ${model.error.id}: ${model.error.msg}` : ""
+                    text: model.error ? i18n(`Failed to transform source ${model.error.id}: ${model.error.msg}`) : ""
                     type: Kirigami.MessageType.Error
                     visible: !!model.error
                 }
                 Kirigami.InlineMessage {
                     Layout.fillWidth: true
-                    text: model.error || model.transformed ? "" : "No transformed source found"
+                    text: model.error || model.transformed ? "" : i18n("No transformed source found")
                     type: Kirigami.MessageType.Warning
                     visible: !model.error && !model.transformed
                 }

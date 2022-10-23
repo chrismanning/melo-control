@@ -5,11 +5,11 @@ query GetCollectionSources($collectionId: String!) {
                 groupParentUri
                 coverImage {
                     ... on ExternalImage {
-                        desc: fileName
+#                        desc: fileName
                         downloadUri
                     }
                     ... on EmbeddedImage {
-                        desc: imageType
+#                        desc: imageType
                         downloadUri
                     }
                 }
@@ -31,10 +31,6 @@ query GetCollectionSources($collectionId: String!) {
                     length
                     metadata {
                         format
-                        tags {
-                            value
-                            key
-                        }
                         mappedTags {
                             trackNumber
                             trackTitle

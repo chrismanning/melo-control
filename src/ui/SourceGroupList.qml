@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as Controls
 import QtQuick.Layouts 1.2
 import org.kde.kirigami 2.20 as Kirigami
 import QSyncable 1.0
+import StreamHandler 1.0
 
 import "transform"
 
@@ -19,11 +20,11 @@ Kirigami.ScrollablePage {
 
     contextualActions: [
         Kirigami.Action {
-            id: selectAllAction
-            text: i18n("Select &All")
-            icon.name: "edit-select-all"
-            shortcut: StandardKey.SelectAll
-            onTriggered: {}
+            id: refreshAction
+            text: i18n("Refresh")
+            icon.name: "view-refresh"
+            shortcut: StandardKey.Refresh
+            onTriggered: sourcesPage.refreshing = true;
         }
     ]
 
@@ -34,7 +35,8 @@ Kirigami.ScrollablePage {
     supportsRefreshing: true
     onRefreshingChanged: {
         if (refreshing) {
-            loadSourceGroups();
+            sourceGroups.model.clear();
+            stream_handler.start_stream();
         }
     }
 
@@ -73,8 +75,8 @@ Kirigami.ScrollablePage {
 
             width: sourceGroups.width - (anchors.leftMargin * 2) - (anchors.rightMargin * 2)
             height: (delegateLayout.columns == 1
-                            ? (coverInfoLayout.implicitHeight + groupHeading.implicitHeight)
-                            : Math.max(coverInfoLayout.implicitHeight, groupHeading.implicitHeight))
+                            ? (coverInfoLayout.childrenRect.height + groupHeading.childrenRect.height)
+                            : Math.max(coverInfoLayout.childrenRect.height, groupHeading.childrenRect.height))
                               + (Kirigami.Units.largeSpacing * 2)
 
             Kirigami.Theme.inherit: false
@@ -134,7 +136,7 @@ Kirigami.ScrollablePage {
                             cache: false
                             asynchronous: true
                             mipmap: true
-                            source: model.coverImage && model.coverImage.downloadUri ? ("http://localhost:5000" + model.coverImage.downloadUri) : ""
+                            source: model.coverImage && model.coverImage.downloadUri ? ("http://192.168.1.166:5000" + model.coverImage.downloadUri) : ""
                         }
                         Rectangle {
                             anchors.fill: parent
@@ -145,6 +147,7 @@ Kirigami.ScrollablePage {
 
                     Flow {
                         Layout.alignment: Qt.AlignHCenter
+                        width: coverPlaceholder.width
                         spacing: Kirigami.Units.smallSpacing
                         Repeater {
                             model: currentGroup.groupTags.genre
@@ -158,12 +161,12 @@ Kirigami.ScrollablePage {
                     }
 
                     Controls.Label {
-                        Layout.alignment: Qt.AlignLeft
+                        Layout.alignment: Qt.AlignHCenter
                         text: model.sources.length + " tracks"
                     }
 
                     Controls.Label {
-                        Layout.alignment: Qt.AlignLeft
+                        Layout.alignment: Qt.AlignHCenter
                         text: {
                             let ms = 0.0;
                             for (const source of model.sources) {
@@ -299,7 +302,24 @@ Kirigami.ScrollablePage {
 
                                     text: {
                                         let num = modelData.metadata.mappedTags.trackNumber;
-                                        return num ? num.slice(0, Math.max(2, num.length)).padStart(2, '0') : '-';
+                                        let disc = currentGroup.groupTags.discNumber;
+                                        let totalDiscs = currentGroup.groupTags.totalDiscs;
+                                        let txt = '-';
+                                        if (num) {
+                                            txt = num.slice(0, Math.max(2, num.length)).padStart(2, '0');
+                                            if (disc && !totalDiscs && disc.indexOf('/') > -1) {
+                                                let terms = disc.split('/');
+                                                if (terms.length > 1) {
+                                                    totalDiscs = terms[1];
+                                                    disc = terms[0];
+                                                }
+                                            }
+
+                                            if (disc && (!totalDiscs || parseInt(totalDiscs) > 1)) {
+                                                txt = disc.slice(-1) + '.' + txt;
+                                            }
+                                        }
+                                        return txt;
                                     }
                                 }
                                 Controls.Label {
@@ -329,6 +349,63 @@ Kirigami.ScrollablePage {
                 }
             }
         }
+    }
+
+    StreamHandler {
+        id: stream_handler
+        url: `http://192.168.1.166:5000/collection/${sourcesPage.collectionId}/source_groups`
+        request_body: `query GetCollectionSources {
+                        sourceGroup {
+                            groupParentUri
+                            coverImage {
+                                ... on ExternalImage {
+                                    #                        desc: fileName
+                                    downloadUri
+                                }
+                                ... on EmbeddedImage {
+                                    #                        desc: imageType
+                                    downloadUri
+                                }
+                            }
+                            groupTags {
+                                albumArtist
+                                albumTitle
+                                date
+                                totalTracks
+                                discNumber
+                                totalDiscs
+                                genre
+                            }
+                            sources {
+                                id
+                                downloadUri
+                                format
+                                sourceName
+                                filePath
+                                length
+                                metadata {
+                                    format
+                                    mappedTags {
+                                        trackNumber
+                                        trackTitle
+                                        artistName
+                                    }
+                                }
+                            }
+                        }
+                    }`
+        onText_chunk_received: {
+            try {
+                var res = JSON.parse(chunk);
+                if (res.data && res.data.sourceGroup){
+                    sourceGroups.model.append(res.data.sourceGroup);
+                }
+            } catch(e) {
+                console.error(`${e}`);
+                console.error(`chunk: ${chunk}`);
+            }
+        }
+        onRefreshing_changed: sourcesPage.refreshing = refreshing
     }
 
     function loadSourceGroups() {
