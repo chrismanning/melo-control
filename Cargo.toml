@@ -10,6 +10,7 @@ cstr = "*"
 eyre = "0.6"
 gurkle = "0.3"
 itertools = "0.10"
+kconfig = "*"
 ki18n = { version = "*", features = ["qmetaobject"] }
 kirigami = "*"
 log = "*"
@@ -23,6 +24,11 @@ tokio = { version = "1", features = ["full"] }
 tokio-stream = "*"
 uuid = { version = "1", features = ["v4"] }
 qsyncable-sys = { git = "https://github.com/chrismanning/qsyncable-sys.git", rev = "8d546b879e7745d38bed4ef53148ba68afe61e91" }
+
+[patch.crates-io]
+kconfig = { git = "https://invent.kde.org/chrismanning/kconfig-rs.git", rev = "55cb318d4002e1608f48ffa98958ac0d010e20ed" }
+qmetaobject = { git = "https://github.com/woboq/qmetaobject-rs.git", rev = "4a661a4064349b7df26903a2d0b0eba4dfafce26" }
+qttypes = { git = "https://github.com/woboq/qmetaobject-rs.git", rev = "4a661a4064349b7df26903a2d0b0eba4dfafce26" }
 
 [dev-dependencies]
 insta = "1"

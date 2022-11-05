@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as Controls
 import QtQuick.Layouts 1.2
 import org.kde.kirigami 2.20 as Kirigami
 import QSyncable 1.0
+import app.melo.Config 1.0
 
 import "."
 
@@ -15,6 +16,11 @@ Kirigami.ScrollablePage {
     required property var sources
 
     title: i18n("Apply transformations?")
+
+    readonly property var serverUrl: Config.server_url
+    onServerUrlChanged: {
+        Backend.exports.config.server_url = `${serverUrl}`;
+    }
 
     Component.onCompleted: {
         previewTransformPage.refreshing = true
@@ -295,7 +301,7 @@ Kirigami.ScrollablePage {
         Backend.exports
             .preview_transform_sources(
                     previewTransformPage.sources,
-                    "%album_artist[ (%artist_origin)]/%4original_release_year - %album_title/%02track_number - %track_title"
+                    "%album_artist[ (%album_artist_origin)]/%4original_release_year - %album_title/%02track_number - %track_title"
                  ).then(
                     transformedSources => {
                         previewTransformPage.refreshing = false;
@@ -316,7 +322,7 @@ Kirigami.ScrollablePage {
         Backend.exports
             .transform_sources(
                     previewTransformPage.sources,
-                    "%album_artist[ (%artist_origin)]/%4original_release_year - %album_title/%02track_number - %track_title"
+                    "%album_artist[ (%album_artist_origin)]/%4original_release_year - %album_title/%02track_number - %track_title"
                  ).then(
                     transformedSources => {
                         previewTransformPage.refreshing = false;

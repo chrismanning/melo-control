@@ -3,6 +3,8 @@ import QtQuick.Controls 2.0 as Controls
 import QtQuick.Layouts 1.2
 import org.kde.kirigami 2.13 as Kirigami
 
+import app.melo.Config 1.0
+
 import "/dist/backend.js" as Backend
 import "."
 
@@ -27,4 +29,8 @@ Kirigami.ApplicationWindow {
     }
 
     pageStack.initialPage: CollectionList {}
+
+    Component.onCompleted: {
+        Backend.exports.config.server_url = `${Config.server_url}`;
+    }
 }

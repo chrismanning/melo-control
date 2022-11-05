@@ -4,6 +4,8 @@ import QtQuick.Layouts 1.2
 import org.kde.kirigami 2.20 as Kirigami
 import QSyncable 1.0
 
+import app.melo.Config 1.0
+
 import "/dist/backend.js" as Backend
 
 Kirigami.ScrollablePage {
@@ -20,8 +22,21 @@ Kirigami.ScrollablePage {
             icon.name: "list-add"
             shortcut: StandardKey.New
             onTriggered: addCollectionDialog.open()
+        },
+        Kirigami.Action {
+            id: refreshAction
+            text: i18n("Refresh")
+            icon.name: "view-refresh"
+            shortcut: StandardKey.Refresh
+            onTriggered: collectionsPage.refreshing = true;
+            enabled: !collectionsPage.refreshing
         }
     ]
+
+    readonly property var serverUrl: Config.server_url
+    onServerUrlChanged: {
+        Backend.exports.config.server_url = `${serverUrl}`;
+    }
 
     Component.onCompleted: {
         collectionsPage.refreshing = true;
@@ -81,7 +96,7 @@ Kirigami.ScrollablePage {
                         text: i18n("Browse Sources")
                         icon.name: "file-catalog-symbolic"
                         onTriggered: {
-                            applicationWindow().pageStack.push("qrc:/src/SourceGroupList.qml", {
+                            applicationWindow().pageStack.push("qrc:/ui/SourceGroupList.qml", {
                                 "collectionId": model.id,
                                 "collectionName": model.name,
                                 "basePath": model.rootUri,

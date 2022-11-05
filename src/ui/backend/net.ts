@@ -1,12 +1,31 @@
+import * as url from "url";
+
 export interface GraphQLRequest<Variables> {
     query: string,
     variables?: Variables,
 }
 
+type Config = {
+    server_url: string,
+}
+
+export let config: Config = {
+    server_url: ""
+}
+
 export function post_request<Response, Variables>(request: GraphQLRequest<Variables>): Promise<Response> {
+    try {
+        url.parse(config.server_url);
+    } catch(e) {
+        console.error(e);
+        let msg = "Invalid 'server_url' value configured: " + config.server_url;
+        console.error(msg);
+        return Promise.reject(msg);
+    }
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', "http://192.168.1.166:5000/api");
+        console.warn(`${config.server_url}/api`);
+        xhr.open('POST', `${config.server_url}/api`);
         xhr.onreadystatechange = () => {
             console.debug("readystate: ", xhr.readyState);
             if (xhr.readyState === XMLHttpRequest.DONE) {

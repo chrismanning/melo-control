@@ -3,7 +3,8 @@ import QtQuick.Controls 2.15 as Controls
 import QtQuick.Layouts 1.2
 import org.kde.kirigami 2.20 as Kirigami
 import QSyncable 1.0
-import StreamHandler 1.0
+import app.melo.Config 1.0
+import app.melo.StreamHandler 1.0
 
 import "transform"
 
@@ -18,6 +19,16 @@ Kirigami.ScrollablePage {
     required property string collectionName
     required property string basePath
 
+    actions {
+        left: Kirigami.Action {
+            id: backAction
+            text: i18n("Back")
+            icon.name: "draw-arrow-back"
+            shortcut: StandardKey.Back
+            onTriggered: applicationWindow().pageStack.pop()
+        }
+    }
+
     contextualActions: [
         Kirigami.Action {
             id: refreshAction
@@ -25,8 +36,14 @@ Kirigami.ScrollablePage {
             icon.name: "view-refresh"
             shortcut: StandardKey.Refresh
             onTriggered: sourcesPage.refreshing = true;
+            enabled: !sourcesPage.refreshing
         }
     ]
+
+    readonly property var serverUrl: Config.server_url
+    onServerUrlChanged: {
+        Backend.exports.config.server_url = `${serverUrl}`;
+    }
 
     Component.onCompleted: {
         sourcesPage.refreshing = true;
@@ -136,7 +153,7 @@ Kirigami.ScrollablePage {
                             cache: false
                             asynchronous: true
                             mipmap: true
-                            source: model.coverImage && model.coverImage.downloadUri ? ("http://192.168.1.166:5000" + model.coverImage.downloadUri) : ""
+                            source: model.coverImage && model.coverImage.downloadUri ? `${Config.server_url + model.coverImage.downloadUri}` : ""
                         }
                         Rectangle {
                             anchors.fill: parent
@@ -188,7 +205,7 @@ Kirigami.ScrollablePage {
                                 text: i18n("Transform")
                                 onTriggered: {
                                     console.log("Transform triggered");
-                                    applicationWindow().pageStack.pushDialogLayer("qrc:/src/transform/PreviewTransform.qml", {
+                                    applicationWindow().pageStack.pushDialogLayer("qrc:/ui/transform/PreviewTransform.qml", {
                                         'sources': model.sources,
                                     });
                                 }
@@ -353,7 +370,7 @@ Kirigami.ScrollablePage {
 
     StreamHandler {
         id: stream_handler
-        url: `http://192.168.1.166:5000/collection/${sourcesPage.collectionId}/source_groups`
+        url: `${Config.server_url}/collection/${sourcesPage.collectionId}/source_groups`
         request_body: `query GetCollectionSources {
                         sourceGroup {
                             groupParentUri

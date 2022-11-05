@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use tokio_stream::StreamExt;
 
 qrc!(pub init_resources,
-    "src/ui" as "src" {
+    "src/ui" as "ui" {
         "main.qml",
         "CollectionList.qml",
         "SourceGroupList.qml",
