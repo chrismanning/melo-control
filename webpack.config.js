@@ -34,7 +34,7 @@ module.exports = {
                     /target/,
                     /build/
                 ],
-                loader: 'ts-loader'
+                loader: 'swc-loader'
             }
         ]
     },
