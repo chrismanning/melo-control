@@ -1,25 +1,12 @@
 import TransformSources from 'raw-loader!../../graphql/mutations/transform_sources.graphql'
-import GetCollectionSources from 'raw-loader!./../../graphql/queries/get_collection_sources.graphql'
 import PreviewTransformSources from 'raw-loader!../../graphql/queries/preview_transform.graphql'
 import {post_request} from "./net";
 import {
-    GetCollectionSourcesQuery,
-    GetCollectionSourcesQueryVariables,
     PreviewTransformSourcesQuery,
     PreviewTransformSourcesQueryVariables,
     Source,
     TransformSourcesMutation, TransformSourcesMutationVariables
 } from "../../graphql/generated";
-
-export function get_collection_sources(collection_id: string): Promise<GetCollectionSourcesQuery> {
-    const request = {
-        query: GetCollectionSources,
-        variables: {
-            "collectionId": collection_id,
-        }
-    };
-    return post_request<GetCollectionSourcesQuery, GetCollectionSourcesQueryVariables>(request);
-}
 
 type HasId = {
     id: string,
@@ -37,8 +24,6 @@ type SourceTransformAggregate = {
 }
 
 export function preview_transform_sources(sources: Partial<Source>[], movePattern: string): Promise<Array<SourceTransformAggregate>> {
-    const originals = new Map<string, Partial<Source>>(sources.map(source => [source.id, source]));
-
     const request = {
         query: PreviewTransformSources,
         variables: {
@@ -103,4 +88,52 @@ export function transform_sources(sources: Partial<Source>[], movePattern: strin
               }
           });
       });
+}
+
+type MappedTag = { mappingName: string, values: Array<string> }
+
+type GroupTags = {
+    albumArtist: [string] | undefined,
+    albumTitle: string | undefined,
+    year: string | undefined,
+    discNumber: string | undefined,
+    totalDiscs: string | undefined,
+    genre: [string] | undefined,
+}
+
+function _head<T>(a: [T] | undefined): T | undefined {
+    return a && a[0] ? a[0] : undefined;
+}
+
+export function groupTags(mappedTags: [MappedTag]): GroupTags {
+    let map = _reify_tags(mappedTags);
+    return {
+        albumArtist: map.get("album_artist"),
+        albumTitle: _head(map.get("album_title")),
+        discNumber: _head(map.get("disc_number")),
+        totalDiscs: _head(map.get("total_discs")),
+        year: _head(map.get("year")),
+        genre: map.get("genre"),
+    }
+}
+
+type TrackTags = {
+    trackArtist: [string] | undefined,
+    trackTitle: string | undefined,
+    trackNumber: string | undefined,
+}
+
+export function trackTags(mappedTags: [MappedTag]): TrackTags {
+    let map = _reify_tags(mappedTags);
+    return {
+        trackArtist: map.get("artist"),
+        trackNumber: _head(map.get("track_number")),
+        trackTitle: _head(map.get("track_title")),
+    };
+}
+
+function _reify_tags(mappedTags: [MappedTag]): Map<string, [string]> {
+    const map = new Map();
+    mappedTags.forEach(m => map.set(m.mappingName, m.values));
+    return map;
 }

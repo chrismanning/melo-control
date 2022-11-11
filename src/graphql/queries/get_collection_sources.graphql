@@ -1,7 +1,7 @@
 query GetCollectionSources($collectionId: String!) {
     library {
         collections(where: { id: {EqExpr: {eq: $collectionId}} }) {
-            sourceGroups {
+            sourceGroups(groupByMappings: ["album_artist","album_title","year","disc_number","total_discs","genre"]) {
                 groupParentUri
                 coverImage {
                     ... on ExternalImage {
@@ -14,13 +14,8 @@ query GetCollectionSources($collectionId: String!) {
                     }
                 }
                 groupTags {
-                    albumArtist
-                    albumTitle
-                    date
-                    totalTracks
-                    discNumber
-                    totalDiscs
-                    genre
+                    mappingName
+                    values
                 }
                 sources {
                     id
@@ -31,10 +26,9 @@ query GetCollectionSources($collectionId: String!) {
                     length
                     metadata {
                         format
-                        mappedTags {
-                            trackNumber
-                            trackTitle
-                            artistName
+                        mappedTags(mappings: ["track_number", "track_title", "artist"]) {
+                            mappingName
+                            values
                         }
                     }
                 }

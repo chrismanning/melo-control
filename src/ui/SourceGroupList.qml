@@ -102,6 +102,7 @@ Kirigami.ScrollablePage {
             anchors.margins: Kirigami.Units.largeSpacing
 
             readonly property var currentGroup: model
+            readonly property var groupTags: Backend.exports.groupTags(currentGroup.groupTags)
 
             GridLayout {
                 id: delegateLayout
@@ -167,7 +168,7 @@ Kirigami.ScrollablePage {
                         width: coverPlaceholder.width
                         spacing: Kirigami.Units.smallSpacing
                         Repeater {
-                            model: currentGroup.groupTags.genre
+                            model: groupTags.genre
 
                             Kirigami.Chip {
                                 text: modelData
@@ -237,7 +238,7 @@ Kirigami.ScrollablePage {
 
                             Layout.maximumWidth: delegateLayout.width - ((delegateLayout.columns - 1) * coverInfoLayout.width) - albumDate.width - Kirigami.Units.largeSpacing
                             elide: Text.ElideRight
-                            text: model.groupTags.albumTitle || decodeURI(model.groupParentUri.replace('%26', '&').replace('file:', ''))
+                            text: groupTags.albumTitle || decodeURI(model.groupParentUri.replace('%26', '&').replace('file:', ''))
                             level: 1
 
                             MouseArea {
@@ -250,7 +251,7 @@ Kirigami.ScrollablePage {
                         }
                         Kirigami.Heading {
                             id: albumDate
-                            text: model.groupTags.date ? '(' + model.groupTags.date + ')' : null
+                            text: groupTags.year ? '(' + groupTags.year + ')' : null
                             level: 2
                             color: Kirigami.Theme.disabledTextColor
                         }
@@ -267,7 +268,7 @@ Kirigami.ScrollablePage {
                         elide: Text.ElideRight
                         level: 1
                         text: {
-                            const artists = model.groupTags.albumArtist;
+                            const artists = groupTags.albumArtist;
                             let text = '';
                             if (artists) {
                                 let i = 0;
@@ -312,15 +313,17 @@ Kirigami.ScrollablePage {
                         delegate: Kirigami.AbstractListItem {
                             id: trackItem
 
+                            readonly property var mappedTags: Backend.exports.trackTags(modelData.metadata.mappedTags)
+
                             RowLayout {
                                 Controls.Label {
                                     id: trackNum
                                     Layout.preferredWidth: 30
 
                                     text: {
-                                        let num = modelData.metadata.mappedTags.trackNumber;
-                                        let disc = currentGroup.groupTags.discNumber;
-                                        let totalDiscs = currentGroup.groupTags.totalDiscs;
+                                        let num = mappedTags.trackNumber;
+                                        let disc = groupTags.discNumber;
+                                        let totalDiscs = groupTags.totalDiscs;
                                         let txt = '-';
                                         if (num) {
                                             txt = num.slice(0, Math.max(2, num.length)).padStart(2, '0');
@@ -345,7 +348,7 @@ Kirigami.ScrollablePage {
                                     Layout.fillWidth: true
                                     elide: Text.ElideRight
 
-                                    text: modelData.metadata.mappedTags.trackTitle || modelData.sourceName
+                                    text: mappedTags.trackTitle || modelData.sourceName
 
                                     Controls.ToolTip.visible: trackTitle.truncated && trackItem.containsMouse
                                     Controls.ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
@@ -370,46 +373,40 @@ Kirigami.ScrollablePage {
 
     StreamHandler {
         id: stream_handler
-        url: `${Config.server_url}/collection/${sourcesPage.collectionId}/source_groups`
+        url: `${Config.server_url}/collection/${sourcesPage.collectionId}/source_groups?groupByMappings=album_artist,album_title,year,disc_number,total_discs,genre`
         request_body: `query GetCollectionSources {
-                        sourceGroup {
-                            groupParentUri
-                            coverImage {
-                                ... on ExternalImage {
-                                    #                        desc: fileName
-                                    downloadUri
+                            sourceGroup {
+                                groupParentUri
+                                coverImage {
+                                    ... on ExternalImage {
+                #                        desc: fileName
+                                        downloadUri
+                                    }
+                                    ... on EmbeddedImage {
+                #                        desc: imageType
+                                        downloadUri
+                                    }
                                 }
-                                ... on EmbeddedImage {
-                                    #                        desc: imageType
-                                    downloadUri
+                                groupTags {
+                                    mappingName
+                                    values
                                 }
-                            }
-                            groupTags {
-                                albumArtist
-                                albumTitle
-                                date
-                                totalTracks
-                                discNumber
-                                totalDiscs
-                                genre
-                            }
-                            sources {
-                                id
-                                downloadUri
-                                format
-                                sourceName
-                                filePath
-                                length
-                                metadata {
+                                sources {
+                                    id
+                                    downloadUri
                                     format
-                                    mappedTags {
-                                        trackNumber
-                                        trackTitle
-                                        artistName
+                                    sourceName
+                                    filePath
+                                    length
+                                    metadata {
+                                        format
+                                        mappedTags(mappings: ["track_number", "track_title", "artist"]) {
+                                            mappingName
+                                            values
+                                        }
                                     }
                                 }
                             }
-                        }
                     }`
         onText_chunk_received: {
             try {
@@ -423,19 +420,5 @@ Kirigami.ScrollablePage {
             }
         }
         onRefreshing_changed: sourcesPage.refreshing = refreshing
-    }
-
-    function loadSourceGroups() {
-        Backend.exports.get_collection_sources(sourcesPage.collectionId)
-            .then(
-                response => {
-                    sourcesPage.refreshing = false;
-                    sourceGroups.model.source = response.library.collections[0].sourceGroups;
-                },
-                error => {
-                    sourcesPage.refreshing = false;
-                    showPassiveNotification(i18n("Failed to load sources"), null, i18n("Retry"), () => { loadSourceGroups() });
-                }
-            );
     }
 }

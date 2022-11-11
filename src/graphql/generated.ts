@@ -27,6 +27,11 @@ export type Collection = {
 };
 
 
+export type CollectionSourceGroupsArgs = {
+  groupByMappings: Array<Scalars['String']>;
+};
+
+
 export type CollectionSourcesArgs = {
   where?: InputMaybe<SourceWhere>;
 };
@@ -83,20 +88,6 @@ export type FailedSourceUpdate = {
   msg: Scalars['String'];
 };
 
-export type GroupTags = {
-  __typename?: 'GroupTags';
-  albumArtist?: Maybe<Array<Scalars['String']>>;
-  albumTitle?: Maybe<Scalars['String']>;
-  date?: Maybe<Scalars['String']>;
-  discNumber?: Maybe<Scalars['String']>;
-  genre?: Maybe<Array<Scalars['String']>>;
-  musicbrainzAlbumArtistId?: Maybe<Array<Scalars['String']>>;
-  musicbrainzAlbumId?: Maybe<Scalars['String']>;
-  musicbrainzArtistId?: Maybe<Array<Scalars['String']>>;
-  totalDiscs?: Maybe<Scalars['String']>;
-  totalTracks?: Maybe<Scalars['String']>;
-};
-
 export type Image = EmbeddedImage | ExternalImage;
 
 export type InExpr = {
@@ -106,25 +97,13 @@ export type InExpr = {
 export type LibraryMutation = {
   __typename?: 'LibraryMutation';
   collection: CollectionMutation;
-  stageSources: StagedSources;
   transformSources: Array<UpdateSourceResult>;
-  updateSources: Array<UpdateSourceResult>;
-};
-
-
-export type LibraryMutationStageSourcesArgs = {
-  uris: Array<Scalars['String']>;
 };
 
 
 export type LibraryMutationTransformSourcesArgs = {
   transformations: Array<Transform>;
   where?: InputMaybe<SourceWhere>;
-};
-
-
-export type LibraryMutationUpdateSourcesArgs = {
-  updates: Array<SourceUpdate>;
 };
 
 export type LibraryQuery = {
@@ -140,53 +119,33 @@ export type LibraryQueryCollectionsArgs = {
 };
 
 
+export type LibraryQuerySourceGroupsArgs = {
+  groupByMappings: Array<Scalars['String']>;
+  where?: InputMaybe<SourceWhere>;
+};
+
+
 export type LibraryQuerySourcesArgs = {
   where?: InputMaybe<SourceWhere>;
 };
 
-export type MappedTags = {
-  __typename?: 'MappedTags';
-  albumArtist?: Maybe<Array<Scalars['String']>>;
-  albumTitle?: Maybe<Scalars['String']>;
-  artistName?: Maybe<Array<Scalars['String']>>;
-  comment?: Maybe<Scalars['String']>;
-  date?: Maybe<Scalars['String']>;
-  discNumber?: Maybe<Scalars['String']>;
-  genre?: Maybe<Array<Scalars['String']>>;
-  musicbrainzAlbumArtistId?: Maybe<Array<Scalars['String']>>;
-  musicbrainzAlbumId?: Maybe<Scalars['String']>;
-  musicbrainzArtistId?: Maybe<Array<Scalars['String']>>;
-  musicbrainzTrackId?: Maybe<Scalars['String']>;
-  totalDiscs?: Maybe<Scalars['String']>;
-  totalTracks?: Maybe<Scalars['String']>;
-  trackNumber?: Maybe<Scalars['String']>;
-  trackTitle?: Maybe<Scalars['String']>;
-};
-
-export type MappedTagsInput = {
-  albumArtist?: InputMaybe<Array<Scalars['String']>>;
-  albumTitle?: InputMaybe<Scalars['String']>;
-  artistName?: InputMaybe<Array<Scalars['String']>>;
-  comment?: InputMaybe<Scalars['String']>;
-  date?: InputMaybe<Scalars['String']>;
-  discNumber?: InputMaybe<Scalars['String']>;
-  genre?: InputMaybe<Array<Scalars['String']>>;
-  musicbrainzAlbumArtistId?: InputMaybe<Array<Scalars['String']>>;
-  musicbrainzAlbumId?: InputMaybe<Scalars['String']>;
-  musicbrainzArtistId?: InputMaybe<Array<Scalars['String']>>;
-  musicbrainzTrackId?: InputMaybe<Scalars['String']>;
-  totalDiscs?: InputMaybe<Scalars['String']>;
-  totalTracks?: InputMaybe<Scalars['String']>;
-  trackNumber?: InputMaybe<Scalars['String']>;
-  trackTitle?: InputMaybe<Scalars['String']>;
+export type MappedTag = {
+  __typename?: 'MappedTag';
+  mappingName: Scalars['String'];
+  values: Array<Scalars['String']>;
 };
 
 export type Metadata = {
   __typename?: 'Metadata';
   format: Scalars['String'];
   formatId: Scalars['String'];
-  mappedTags: MappedTags;
+  mappedTags: Array<MappedTag>;
   tags: Array<TagPair>;
+};
+
+
+export type MetadataMappedTagsArgs = {
+  mappings: Array<Scalars['String']>;
 };
 
 /**
@@ -260,13 +219,8 @@ export type SourceGroup = {
   __typename?: 'SourceGroup';
   coverImage?: Maybe<Image>;
   groupParentUri: Scalars['String'];
-  groupTags: GroupTags;
+  groupTags: Array<MappedTag>;
   sources: Array<Source>;
-};
-
-export type SourceUpdate = {
-  id: Scalars['SourceRef'];
-  updateTags: TagUpdate;
 };
 
 export type SourceWhere = {
@@ -279,13 +233,6 @@ export type SplitMultiTrackFile = {
   destPattern: Scalars['String'];
 };
 
-export type StagedSources = {
-  __typename?: 'StagedSources';
-  groups: Array<SourceGroup>;
-  numberOfSourcesImported: Scalars['Int'];
-  sources: Array<Source>;
-};
-
 export type StartsWithExpr = {
   startsWith: Scalars['String'];
 };
@@ -294,11 +241,6 @@ export type TagPair = {
   __typename?: 'TagPair';
   key: Scalars['String'];
   value: Scalars['String'];
-};
-
-export type TagUpdate = {
-  setMappedTags?: InputMaybe<MappedTagsInput>;
-  setTags?: InputMaybe<Array<UpdatePair>>;
 };
 
 /**
@@ -314,11 +256,6 @@ export type Transform = {
 export enum Unit {
   Unit = 'Unit'
 }
-
-export type UpdatePair = {
-  key: Scalars['String'];
-  value: Scalars['String'];
-};
 
 export type UpdateSourceResult = FailedSourceUpdate | UpdatedSource;
 
@@ -363,19 +300,12 @@ export type TransformSourcesMutationVariables = Exact<{
 
 export type TransformSourcesMutation = { __typename?: 'Mutation', library: { __typename?: 'LibraryMutation', transformSources: Array<{ __typename: 'FailedSourceUpdate', id: any, msg: string } | { __typename: 'UpdatedSource', _0: { __typename?: 'Source', id: any } }> } };
 
-export type GetCollectionQueryVariables = Exact<{
-  collectionId: Scalars['String'];
-}>;
-
-
-export type GetCollectionQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', collections: Array<{ __typename?: 'Collection', id: any, name: string, sourceGroups: Array<{ __typename?: 'SourceGroup', sources: Array<{ __typename?: 'Source', id: any, downloadUri: string, metadata: { __typename?: 'Metadata', mappedTags: { __typename?: 'MappedTags', artistName?: Array<string> | null, trackNumber?: string | null, trackTitle?: string | null } } }>, groupTags: { __typename?: 'GroupTags', albumArtist?: Array<string> | null, albumTitle?: string | null, date?: string | null, discNumber?: string | null, genre?: Array<string> | null, totalDiscs?: string | null } }> }> } };
-
 export type GetCollectionSourcesQueryVariables = Exact<{
   collectionId: Scalars['String'];
 }>;
 
 
-export type GetCollectionSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', collections: Array<{ __typename?: 'Collection', sourceGroups: Array<{ __typename?: 'SourceGroup', groupParentUri: string, coverImage?: { __typename?: 'EmbeddedImage', downloadUri: string } | { __typename?: 'ExternalImage', downloadUri: string } | null, groupTags: { __typename?: 'GroupTags', albumArtist?: Array<string> | null, albumTitle?: string | null, date?: string | null, totalTracks?: string | null, discNumber?: string | null, totalDiscs?: string | null, genre?: Array<string> | null }, sources: Array<{ __typename?: 'Source', id: any, downloadUri: string, format: string, sourceName: string, filePath?: string | null, length?: number | null, metadata: { __typename?: 'Metadata', format: string, mappedTags: { __typename?: 'MappedTags', trackNumber?: string | null, trackTitle?: string | null, artistName?: Array<string> | null } } }> }> }> } };
+export type GetCollectionSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', collections: Array<{ __typename?: 'Collection', sourceGroups: Array<{ __typename?: 'SourceGroup', groupParentUri: string, coverImage?: { __typename?: 'EmbeddedImage', downloadUri: string } | { __typename?: 'ExternalImage', downloadUri: string } | null, groupTags: Array<{ __typename?: 'MappedTag', mappingName: string, values: Array<string> }>, sources: Array<{ __typename?: 'Source', id: any, downloadUri: string, format: string, sourceName: string, filePath?: string | null, length?: number | null, metadata: { __typename?: 'Metadata', format: string, mappedTags: Array<{ __typename?: 'MappedTag', mappingName: string, values: Array<string> }> } }> }> }> } };
 
 export type GetCollectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
