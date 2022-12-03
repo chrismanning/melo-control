@@ -1,4 +1,4 @@
-query PreviewTransformSources($srcIds: [String!]!, $movePattern: String!) {
+query PreviewTransformSources($srcIds: [String!]!, $transformations: [Transform!]!) {
     library {
         sources(where: {id: {InExpr: {in: $srcIds}}}) {
             metadata {
@@ -8,18 +8,7 @@ query PreviewTransformSources($srcIds: [String!]!, $movePattern: String!) {
                     value
                 }
             }
-            previewTransform(transformations: [
-                {
-                    SplitMultiTrackFile: {
-                        destPattern: $movePattern
-                    }
-                },
-                {
-                    Move: {
-                        destPattern: $movePattern
-                    }
-                }
-            ]) {
+            previewTransform(transformations: $transformations) {
                 __typename
                 ... on UpdatedSource {
                     _0 {
@@ -32,6 +21,10 @@ query PreviewTransformSources($srcIds: [String!]!, $movePattern: String!) {
                             tags {
                                 key
                                 value
+                            }
+                            mappedTags(mappings: ["album_artist","album_title","year","disc_number","total_discs","genre"]) {
+                                mappingName,
+                                values
                             }
                         }
                     }

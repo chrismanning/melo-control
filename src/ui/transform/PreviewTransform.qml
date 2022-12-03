@@ -14,6 +14,7 @@ Kirigami.ScrollablePage {
     id: previewTransformPage
 
     required property var sources
+    required property var groupTags
 
     title: i18n("Apply transformations?")
 
@@ -55,25 +56,69 @@ Kirigami.ScrollablePage {
     }
 
     actions {
-        left: Kirigami.Action {
-            id: cancelAction
-            text: i18n("Cancel")
-
-            icon.name: "dialog-cancel"
-            onTriggered: {
-                closeDialog();
-            }
-        }
-        right: Kirigami.Action {
+        main: Kirigami.Action {
             id: confirmAction
             text: i18n("Apply")
-
+            shortcut: "Ctrl+Enter"
             icon.name: "dialog-ok"
             onTriggered: {
                 confirmAction.enabled = false;
                 previewTransformPage.applying = true;
                 previewTransformPage.refreshing = true;
             }
+        }
+        contextualActions: [
+            Kirigami.Action {
+                id: editAction
+                text: i18n("Edit Group Tags")
+                shortcut: "e"
+                icon.name: "document-edit"
+                onTriggered: {
+                    console.debug("Edit group tags triggered")
+                    let item = applicationWindow().pageStack.pushDialogLayer("qrc:/ui/transform/EditGroupTags.qml", {
+                        'groupTags': Object.assign({}, groupTags),
+                    }, {'title': 'Edit Group Tags'});
+                    editGroupTagsConnections.target = item;
+                }
+            }
+        ]
+    }
+    Connections {
+        id: editGroupTagsConnections
+        function onAccepted(groupTags) {
+            console.debug("group tags accepted: " + JSON.stringify(groupTags));
+            console.debug("group tags to modify: " + JSON.stringify(previewTransformPage.groupTags));
+            changeContainer.updatedGroupTags = groupTags;
+            previewTransformPage.refreshing = true;
+        }
+    }
+
+    QtObject {
+        id: changeContainer
+        property var updatedGroupTags: previewTransformPage.groupTags
+        function transformations() {
+            const set = (mapping, getter) => {
+                if (getter(previewTransformPage.groupTags) !== getter(changeContainer.updatedGroupTags)) {
+                    return {
+                        EditMetadata: {
+                            metadataTransform: {
+                                SetMapping: {
+                                    mapping: mapping,
+                                    values: getter(changeContainer.updatedGroupTags)
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            return [
+                set("album_artist", g => g.albumArtist),
+                set("album_title", g => g.albumTitle),
+                set("year", g => g.year),
+                set("genre", g => g.genre),
+                set("disc_number", g => g.discNumber),
+                set("total_discs", g => g.totalDiscs),
+            ].filter(t => t && t.EditMetadata.metadataTransform.SetMapping.values && t.EditMetadata.metadataTransform.SetMapping.values.filter(v => v).length > 0);
         }
     }
 
@@ -297,16 +342,36 @@ Kirigami.ScrollablePage {
                 `<span style="background-color: ${Kirigami.Theme.positiveBackgroundColor}">${added}</span>`;
     }
 
+    property string movePattern: "%album_artist[ (%album_artist_origin)]/%4original_release_year - %album_title[ (%catalogue_number)]/%02track_number - %track_title"
+
     function previewTransform() {
+        const ts = [...changeContainer.transformations(),
+                {
+                    MusicBrainzLookup: {}
+                },
+                {
+                    SplitMultiTrackFile: {
+                        destPattern: movePattern
+                    }
+                },
+                {
+                    Move: {
+                        destPattern: movePattern
+                    }
+                }
+            ];
         Backend.exports
             .preview_transform_sources(
                     previewTransformPage.sources,
-                    "%album_artist[ (%album_artist_origin)]/%4original_release_year - %album_title/%02track_number - %track_title"
+                    ts
                  ).then(
                     transformedSources => {
                         previewTransformPage.refreshing = false;
                         console.log(JSON.stringify(transformedSources));
                         transforms.model.source = transformedSources;
+                        if (transformedSources[0].metadata) {
+                            previewTransformPage.groupTags = Backend.exports.groupTags(transformedSources[0].metadata.mappedTags);
+                        }
                     }).catch(error => {
                         console.error(error);
                         previewTransformPage.refreshing = false;
@@ -319,10 +384,25 @@ Kirigami.ScrollablePage {
     }
 
     function applyTransform() {
+        const ts = [...changeContainer.transformations(),
+                {
+                    MusicBrainzLookup: {}
+                },
+                {
+                    SplitMultiTrackFile: {
+                        destPattern: movePattern
+                    }
+                },
+                {
+                    Move: {
+                        destPattern: movePattern
+                    }
+                }
+            ];
         Backend.exports
             .transform_sources(
                     previewTransformPage.sources,
-                    "%album_artist[ (%album_artist_origin)]/%4original_release_year - %album_title/%02track_number - %track_title"
+                    ts
                  ).then(
                     transformedSources => {
                         previewTransformPage.refreshing = false;

@@ -2,6 +2,7 @@
 import QtQuick.Controls 2.15 as Controls
 import QtQuick.Layouts 1.2
 import org.kde.kirigami 2.20 as Kirigami
+import org.kde.kirigami.templates 2.2 as T
 import QSyncable 1.0
 import app.melo.Config 1.0
 import app.melo.StreamHandler 1.0
@@ -64,31 +65,15 @@ Kirigami.ScrollablePage {
         model: JsonListModel {}
         onModelChanged: console.debug("source group model changed")
         delegate: sourceGroupDelegate
+        focus: true
     }
 
     Component {
         id: sourceGroupDelegate
-        Controls.ItemDelegate {
+        Kirigami.AbstractCard {
             id: sourceGroupCard
 
-            background: Kirigami.ShadowedRectangle {
-                property color defaultColor: Kirigami.Theme.backgroundColor
-                property int borderWidth: 1
-                property color borderColor: Kirigami.ColorUtils.tintWithAlpha(color, Kirigami.Theme.textColor, 0.2)
-
-                color: Kirigami.Theme.backgroundColor
-                radius: Kirigami.Units.smallSpacing
-                shadow {
-                    size: Kirigami.Units.largeSpacing
-                    color: Qt.rgba(0, 0, 0, 0.2)
-                    yOffset: 2
-                }
-
-                border {
-                    width: borderWidth
-                    color: borderColor
-                }
-            }
+            highlighted: ListView.isCurrentItem
 
             width: sourceGroups.width - (anchors.leftMargin * 2) - (anchors.rightMargin * 2)
             height: (delegateLayout.columns == 1
@@ -204,19 +189,22 @@ Kirigami.ScrollablePage {
                             Kirigami.Action {
                                 id: transformAction
                                 text: i18n("Transform")
+                                shortcut: "t"
                                 onTriggered: {
                                     console.log("Transform triggered");
                                     applicationWindow().pageStack.pushDialogLayer("qrc:/ui/transform/PreviewTransform.qml", {
                                         'sources': model.sources,
-                                    });
+                                        'groupTags': groupTags,
+                                    }, {'title': 'Transform Sources'});
                                 }
                             },
                             Kirigami.Action {
                                 id: deleteAction
                                 text: i18n("Delete")
                                 icon.name: "edit-delete"
+                                shortcut: StandardKey.Delete
                                 onTriggered: {
-                                    console.log("Delete triggered");
+                                    console.log("Delete triggered for sources");
                                 }
                             }
                         ]

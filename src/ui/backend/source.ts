@@ -4,7 +4,7 @@ import {post_request} from "./net";
 import {
     PreviewTransformSourcesQuery,
     PreviewTransformSourcesQueryVariables,
-    Source,
+    Source, Transform,
     TransformSourcesMutation, TransformSourcesMutationVariables
 } from "../../graphql/generated";
 
@@ -23,12 +23,12 @@ type SourceTransformAggregate = {
     error?: Extract<PreviewTransformSourcesQuery["library"]["sources"][number]["previewTransform"], HasId>,
 }
 
-export function preview_transform_sources(sources: Partial<Source>[], movePattern: string): Promise<Array<SourceTransformAggregate>> {
+export function preview_transform_sources(sources: Partial<Source>[], transformations: Transform[]): Promise<Array<SourceTransformAggregate>> {
     const request = {
         query: PreviewTransformSources,
         variables: {
             "srcIds": sources.map(s => s.id),
-            "movePattern": movePattern
+            "transformations": transformations
         }
     };
     return post_request<PreviewTransformSourcesQuery, PreviewTransformSourcesQueryVariables>(request)
@@ -57,12 +57,12 @@ export function preview_transform_sources(sources: Partial<Source>[], movePatter
       });
 }
 
-export function transform_sources(sources: Partial<Source>[], movePattern: string): Promise<Array<SourceTransformAggregate>> {
+export function transform_sources(sources: Partial<Source>[], transformations: Transform[]): Promise<Array<SourceTransformAggregate>> {
     const request = {
         query: TransformSources,
         variables: {
             "srcIds": sources.map(s => s.id),
-            "movePattern": movePattern
+            "transformations": transformations
         }
     };
     return post_request<TransformSourcesMutation, TransformSourcesMutationVariables>(request)
@@ -92,14 +92,14 @@ export function transform_sources(sources: Partial<Source>[], movePattern: strin
 
 type MappedTag = { mappingName: string, values: Array<string> }
 
-type GroupTags = {
-    albumArtist: [string] | undefined,
-    albumTitle: string | undefined,
-    year: string | undefined,
-    discNumber: string | undefined,
-    totalDiscs: string | undefined,
-    genre: [string] | undefined,
-}
+type GroupTags = Partial<{
+    albumArtist: [string],
+    albumTitle: string,
+    year: string,
+    discNumber: string,
+    totalDiscs: string,
+    genre: [string],
+}>
 
 function _head<T>(a: [T] | undefined): T | undefined {
     return a && a[0] ? a[0] : undefined;
@@ -117,11 +117,11 @@ export function groupTags(mappedTags: [MappedTag]): GroupTags {
     }
 }
 
-type TrackTags = {
-    trackArtist: [string] | undefined,
-    trackTitle: string | undefined,
-    trackNumber: string | undefined,
-}
+type TrackTags = Partial<{
+    trackArtist: [string],
+    trackTitle: string,
+    trackNumber: string,
+}>
 
 export function trackTags(mappedTags: [MappedTag]): TrackTags {
     let map = _reify_tags(mappedTags);

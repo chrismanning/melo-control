@@ -39,8 +39,8 @@ export type CollectionSourcesArgs = {
 export type CollectionMutation = {
   __typename?: 'CollectionMutation';
   add: Collection;
-  delete: Unit;
-  deleteAll: Unit;
+  delete?: Maybe<Scalars['CollectionRef']>;
+  deleteAll: Array<Scalars['CollectionRef']>;
 };
 
 
@@ -163,6 +163,10 @@ export type Move = {
   destPattern: Scalars['String'];
 };
 
+export type MusicBrainzLookup = {
+  options?: InputMaybe<Scalars['Int']>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   library: LibraryMutation;
@@ -250,12 +254,9 @@ export type TagPair = {
 export type Transform = {
   EditMetadata?: InputMaybe<EditMetadata>;
   Move?: InputMaybe<Move>;
+  MusicBrainzLookup?: InputMaybe<MusicBrainzLookup>;
   SplitMultiTrackFile?: InputMaybe<SplitMultiTrackFile>;
 };
-
-export enum Unit {
-  Unit = 'Unit'
-}
 
 export type UpdateSourceResult = FailedSourceUpdate | UpdatedSource;
 
@@ -290,11 +291,11 @@ export type DeleteCollectionMutationVariables = Exact<{
 }>;
 
 
-export type DeleteCollectionMutation = { __typename?: 'Mutation', library: { __typename?: 'LibraryMutation', collection: { __typename?: 'CollectionMutation', delete: Unit } } };
+export type DeleteCollectionMutation = { __typename?: 'Mutation', library: { __typename?: 'LibraryMutation', collection: { __typename?: 'CollectionMutation', delete?: any | null } } };
 
 export type TransformSourcesMutationVariables = Exact<{
   srcIds: Array<Scalars['String']> | Scalars['String'];
-  movePattern: Scalars['String'];
+  transformations: Array<Transform> | Transform;
 }>;
 
 
@@ -314,8 +315,8 @@ export type GetCollectionsQuery = { __typename?: 'Query', library: { __typename?
 
 export type PreviewTransformSourcesQueryVariables = Exact<{
   srcIds: Array<Scalars['String']> | Scalars['String'];
-  movePattern: Scalars['String'];
+  transformations: Array<Transform> | Transform;
 }>;
 
 
-export type PreviewTransformSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', sources: Array<{ __typename?: 'Source', metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', key: string, value: string }> }, previewTransform: { __typename: 'FailedSourceUpdate', id: any, msg: string } | { __typename: 'UpdatedSource', _0: { __typename?: 'Source', id: any, downloadUri: string, sourceName: string, filePath?: string | null, metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', key: string, value: string }> } } } }> } };
+export type PreviewTransformSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', sources: Array<{ __typename?: 'Source', metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', key: string, value: string }> }, previewTransform: { __typename: 'FailedSourceUpdate', id: any, msg: string } | { __typename: 'UpdatedSource', _0: { __typename?: 'Source', id: any, downloadUri: string, sourceName: string, filePath?: string | null, metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', key: string, value: string }>, mappedTags: Array<{ __typename?: 'MappedTag', mappingName: string, values: Array<string> }> } } } }> } };
