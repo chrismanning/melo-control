@@ -1,19 +1,18 @@
 import QtQuick 2.15
+import Qt.labs.qmlmodels 1.0
 import QtQuick.Controls 2.15 as Controls
-import QtQuick.Layouts 1.2
+import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import QSyncable 1.0
 import app.melo.Config 1.0
 
 import "."
 
-import "/dist/backend.js" as Backend
-import "/dist/diff.js" as Diff
-
-Kirigami.ScrollablePage {
+Kirigami.Page {
     id: editGroupTagsPage
 
-    property var groupTags
+    required property var groupMappedTags
+    required property var groupTags
 
     actions {
         main: Kirigami.Action {
@@ -39,84 +38,151 @@ Kirigami.ScrollablePage {
         ]
     }
 
-    signal accepted(var groupTags)
+    signal accepted(var groupMappedTags, var groupTags)
 
     function accept() {
-        groupTags.albumArtist = albumArtist.text.split("\n").filter(g => g);
+        groupMappedTags.albumArtist = albumArtist.text.split("\n").filter(g => g);
         if (albumTitle.text) {
-            groupTags.albumTitle = albumTitle.text;
+            groupMappedTags.albumTitle = albumTitle.text;
         } else {
-            groupTags.albumTitle = null;
+            groupMappedTags.albumTitle = null;
         }
         if (releaseYear.text) {
-            groupTags.year = releaseYear.text;
+            groupMappedTags.year = releaseYear.text;
         } else {
-            groupTags.year = null;
+            groupMappedTags.year = null;
         }
         if (discNumber.text) {
-            groupTags.discNumber = discNumber.text;
+            groupMappedTags.discNumber = discNumber.text;
         } else {
-            groupTags.discNumber = null;
+            groupMappedTags.discNumber = null;
         }
-        groupTags.genre = genre.text.split("\n").filter(g => g);
+        groupMappedTags.genre = genre.text.split("\n").filter(g => g);
 
-        accepted(groupTags);
+        if (advancedSwitch.checked) {
+            accepted(null, advancedTagsModel.source.map(s => {return {key: s.key, value: s.value};}));
+        } else {
+            accepted(groupMappedTags, null);
+        }
     }
 
-    onGroupTagsChanged: {
-        if (!groupTags) {
+    onGroupMappedTagsChanged: {
+        if (!groupMappedTags) {
             return;
         }
-        if (groupTags.albumArtist) {
-            albumArtist.text = groupTags.albumArtist.join("\n");
+        if (groupMappedTags.albumArtist) {
+            albumArtist.text = groupMappedTags.albumArtist.join("\n");
         } else {
             albumArtist.clear();
         }
-        if (groupTags.albumTitle) {
-            albumTitle.text = groupTags.albumTitle;
+        if (groupMappedTags.albumTitle) {
+            albumTitle.text = groupMappedTags.albumTitle;
         } else {
             albumTitle.clear();
         }
-        if (groupTags.year) {
-            releaseYear.text = groupTags.year;
+        if (groupMappedTags.year) {
+            releaseYear.text = groupMappedTags.year;
         } else {
             releaseYear.clear();
         }
-        if (groupTags.genre) {
-            genre.text = groupTags.genre.join("\n");
+        if (groupMappedTags.genre) {
+            genre.text = groupMappedTags.genre.join("\n");
         } else {
             genre.clear();
         }
     }
 
-    Kirigami.FormLayout {
-        Controls.TextArea {
-            id: albumArtist
-            Kirigami.FormData.label: i18n("Album Artist")
-            placeholderText: i18n("Input multiple artists on separate lines")
-            KeyNavigation.priority: KeyNavigation.BeforeItem
-            KeyNavigation.backtab: genre
-            KeyNavigation.tab: albumTitle
+    ColumnLayout {
+        anchors.fill: parent
+        Controls.Switch {
+            id: advancedSwitch
+            text: i18n("Advanced")
+            checked: false
         }
-        Controls.TextField {
-            id: albumTitle
-            Kirigami.FormData.label: i18n("Album Title")
-        }
-        Controls.TextField {
-            id: releaseYear
-            Kirigami.FormData.label: i18n("Year")
-        }
-        Controls.TextField {
-            id: discNumber
-            Kirigami.FormData.label: i18n("Disc Number")
-        }
-        Controls.TextArea {
-            id: genre
-            Kirigami.FormData.label: i18n("Genre(s)")
-            placeholderText: i18n("Input multiple genres on separate lines")
-            KeyNavigation.priority: KeyNavigation.BeforeItem
-            KeyNavigation.backtab: discNumber
-            KeyNavigation.tab: albumArtist
+
+        StackLayout {
+            currentIndex: advancedSwitch.checked ? 1 : 0
+
+            Kirigami.FormLayout {
+                id: simpleForm
+                Controls.TextArea {
+                    id: albumArtist
+                    Kirigami.FormData.label: i18n("Album Artist")
+                    placeholderText: i18n("Input multiple artists on separate lines")
+                    KeyNavigation.priority: KeyNavigation.BeforeItem
+                    KeyNavigation.backtab: genre
+                    KeyNavigation.tab: albumTitle
+                }
+                Controls.TextField {
+                    id: albumTitle
+                    Kirigami.FormData.label: i18n("Album Title")
+                }
+                Controls.TextField {
+                    id: releaseYear
+                    Kirigami.FormData.label: i18n("Year")
+                }
+                Controls.TextField {
+                    id: discNumber
+                    Kirigami.FormData.label: i18n("Disc Number")
+                }
+                Controls.TextArea {
+                    id: genre
+                    Kirigami.FormData.label: i18n("Genre(s)")
+                    placeholderText: i18n("Input multiple genres on separate lines")
+                    KeyNavigation.priority: KeyNavigation.BeforeItem
+                    KeyNavigation.backtab: discNumber
+                    KeyNavigation.tab: albumArtist
+                }
+            }
+
+            Controls.ScrollView {
+                Kirigami.FormLayout {
+                    Repeater {
+                        model: JsonListModel {
+                            id: advancedTagsModel
+                            keyField: "idx"
+                            fields: [
+                                "idx",
+                                "key",
+                                "value"
+                            ]
+                            source: editGroupTagsPage.groupTags
+                        }
+
+                        delegate: Kirigami.AbstractListItem {
+                            contentItem: RowLayout {
+                                Controls.Label {
+                                    id: keyLabel
+                                    Layout.fillWidth: true
+                                    text: model.key
+                                    elide: "ElideRight"
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        hoverEnabled: keyLabel.truncated
+                                        Controls.ToolTip.visible: keyLabel.truncated && containsMouse
+                                        Controls.ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+                                        Controls.ToolTip.text: keyLabel.text
+                                    }
+                                }
+
+                                Controls.TextField {
+                                    width: 250
+                                    Kirigami.FormData.label: model.key
+                                    text: model.value
+                                }
+
+                                Controls.ToolButton {
+                                    icon.name: "tag-delete"
+                                    onClicked: {
+                                        editGroupTagsPage.groupTags = editGroupTagsPage.groupTags.filter(t => t.idx !== model.idx);
+                                        advancedTagsModel.source = editGroupTagsPage.groupTags;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

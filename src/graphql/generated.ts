@@ -15,6 +15,11 @@ export type Scalars = {
   SourceRef: any;
 };
 
+export type AddTag = {
+  key: Scalars['String'];
+  value: Scalars['String'];
+};
+
 export type Collection = {
   __typename?: 'Collection';
   id: Scalars['CollectionRef'];
@@ -153,8 +158,12 @@ export type MetadataMappedTagsArgs = {
  * i.e., the customer can provide a value for only one field.
  */
 export type MetadataTransformation = {
+  AddTag?: InputMaybe<AddTag>;
+  RemoveAll?: InputMaybe<Unit>;
   RemoveMappings?: InputMaybe<RemoveMappings>;
-  Retain?: InputMaybe<Retain>;
+  RemoveTag?: InputMaybe<RemoveTag>;
+  RemoveTags?: InputMaybe<RemoveTags>;
+  RetainMappings?: InputMaybe<RetainMappings>;
   SetMapping?: InputMaybe<SetMapping>;
 };
 
@@ -191,7 +200,16 @@ export type RemoveMappings = {
   mappings: Array<Scalars['String']>;
 };
 
-export type Retain = {
+export type RemoveTag = {
+  key: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type RemoveTags = {
+  key: Scalars['String'];
+};
+
+export type RetainMappings = {
   mappings: Array<Scalars['String']>;
 };
 
@@ -257,6 +275,10 @@ export type Transform = {
   MusicBrainzLookup?: InputMaybe<MusicBrainzLookup>;
   SplitMultiTrackFile?: InputMaybe<SplitMultiTrackFile>;
 };
+
+export enum Unit {
+  Unit = 'Unit'
+}
 
 export type UpdateSourceResult = FailedSourceUpdate | UpdatedSource;
 

@@ -30,6 +30,8 @@ Kirigami.ScrollablePage {
         }
     }
 
+    property bool orphans
+
     contextualActions: [
         Kirigami.Action {
             id: refreshAction
@@ -37,6 +39,17 @@ Kirigami.ScrollablePage {
             icon.name: "view-refresh"
             shortcut: StandardKey.Refresh
             onTriggered: sourcesPage.refreshing = true;
+            enabled: !sourcesPage.refreshing
+        },
+        Kirigami.Action {
+            id: orphanAction
+            text: i18n("Orphans")
+            shortcut: "Alt+o"
+            checkable: true
+            onToggled: {
+                orphans = checked;
+                sourcesPage.refreshing = true;
+            }
             enabled: !sourcesPage.refreshing
         }
     ]
@@ -87,7 +100,7 @@ Kirigami.ScrollablePage {
             anchors.margins: Kirigami.Units.largeSpacing
 
             readonly property var currentGroup: model
-            readonly property var groupTags: Backend.exports.groupTags(currentGroup.groupTags)
+            readonly property var groupMappedTags: Backend.exports.groupMappedTags(currentGroup.groupTags)
 
             GridLayout {
                 id: delegateLayout
@@ -153,7 +166,7 @@ Kirigami.ScrollablePage {
                         width: coverPlaceholder.width
                         spacing: Kirigami.Units.smallSpacing
                         Repeater {
-                            model: groupTags.genre
+                            model: groupMappedTags.genre
 
                             Kirigami.Chip {
                                 text: modelData
@@ -194,7 +207,7 @@ Kirigami.ScrollablePage {
                                     console.log("Transform triggered");
                                     applicationWindow().pageStack.pushDialogLayer("qrc:/ui/transform/PreviewTransform.qml", {
                                         'sources': model.sources,
-                                        'groupTags': groupTags,
+                                        'groupMappedTags': groupMappedTags
                                     }, {'title': 'Transform Sources'});
                                 }
                             },
@@ -226,7 +239,7 @@ Kirigami.ScrollablePage {
 
                             Layout.maximumWidth: delegateLayout.width - ((delegateLayout.columns - 1) * coverInfoLayout.width) - albumDate.width - Kirigami.Units.largeSpacing
                             elide: Text.ElideRight
-                            text: groupTags.albumTitle || decodeURI(model.groupParentUri.replace('%26', '&').replace('file:', ''))
+                            text: groupMappedTags.albumTitle || decodeURI(model.groupParentUri.replace('%26', '&').replace('file:', ''))
                             level: 1
 
                             MouseArea {
@@ -239,7 +252,7 @@ Kirigami.ScrollablePage {
                         }
                         Kirigami.Heading {
                             id: albumDate
-                            text: groupTags.year ? '(' + groupTags.year + ')' : null
+                            text: groupMappedTags.year ? '(' + groupMappedTags.year + ')' : null
                             level: 2
                             color: Kirigami.Theme.disabledTextColor
                         }
@@ -256,7 +269,7 @@ Kirigami.ScrollablePage {
                         elide: Text.ElideRight
                         level: 1
                         text: {
-                            const artists = groupTags.albumArtist;
+                            const artists = groupMappedTags.albumArtist;
                             let text = '';
                             if (artists) {
                                 let i = 0;
@@ -310,8 +323,8 @@ Kirigami.ScrollablePage {
 
                                     text: {
                                         let num = mappedTags.trackNumber;
-                                        let disc = groupTags.discNumber;
-                                        let totalDiscs = groupTags.totalDiscs;
+                                        let disc = groupMappedTags.discNumber;
+                                        let totalDiscs = groupMappedTags.totalDiscs;
                                         let txt = '-';
                                         if (num) {
                                             txt = num.slice(0, Math.max(2, num.length)).padStart(2, '0');
@@ -361,7 +374,7 @@ Kirigami.ScrollablePage {
 
     StreamHandler {
         id: stream_handler
-        url: `${Config.server_url}/collection/${sourcesPage.collectionId}/source_groups?groupByMappings=album_artist,album_title,year,disc_number,total_discs,genre`
+        url: `${Config.server_url}/collection/${sourcesPage.collectionId}/source_groups?groupByMappings=album_artist,album_title,year,disc_number,total_discs,genre&orphans=${sourcesPage.orphans}`
         request_body: `query GetCollectionSources {
                             sourceGroup {
                                 groupParentUri

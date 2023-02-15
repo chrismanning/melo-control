@@ -11,6 +11,7 @@ use cstr::cstr;
 use eyre::*;
 use kconfig::prelude::*;
 use ki18n::klocalizedcontext::KLocalizedContext;
+use ki18n::prelude::KLocalizedString;
 use log::LevelFilter;
 use qmetaobject::prelude::*;
 use qmetaobject::{qml_register_singleton_instance, QStandardPathLocation};
@@ -32,6 +33,8 @@ fn main() -> Result<()> {
     qml_register_type::<ui::StreamHandler>(cstr!("app.melo.StreamHandler"), 1, 0, cstr!("StreamHandler"));
 
     qsyncable_sys::register_qml_types();
+
+    KLocalizedString::set_application_domain(cstr!("melo"));
 
     let mut engine = QmlEngine::new();
     KLocalizedContext::init_from_engine(&engine);

@@ -4,7 +4,7 @@ import {post_request} from "./net";
 import {
     PreviewTransformSourcesQuery,
     PreviewTransformSourcesQueryVariables,
-    Source, Transform,
+    Source, TagPair, Transform,
     TransformSourcesMutation, TransformSourcesMutationVariables
 } from "../../graphql/generated";
 
@@ -90,6 +90,21 @@ export function transform_sources(sources: Partial<Source>[], transformations: T
       });
 }
 
+export function groupTags(sources: Source[]): TagPair[] {
+    return sources.map(src => src.metadata.tags)
+        .reduce((previousValue, currentValue) => {
+            if (previousValue) {
+                return previousValue.filter(a => {
+                    return currentValue.find(b => {
+                        return a.key === b.key
+                            && a.value === b.value;
+                    });
+                });
+            }
+            return currentValue;
+        });
+}
+
 type MappedTag = { mappingName: string, values: Array<string> }
 
 type GroupTags = Partial<{
@@ -105,7 +120,7 @@ function _head<T>(a: [T] | undefined): T | undefined {
     return a && a[0] ? a[0] : undefined;
 }
 
-export function groupTags(mappedTags: [MappedTag]): GroupTags {
+export function groupMappedTags(mappedTags: [MappedTag]): GroupTags {
     let map = _reify_tags(mappedTags);
     return {
         albumArtist: map.get("album_artist"),

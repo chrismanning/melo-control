@@ -7,6 +7,10 @@ query PreviewTransformSources($srcIds: [String!]!, $transformations: [Transform!
                     key
                     value
                 }
+                mappedTags(mappings: ["album_artist","album_title","year","disc_number","total_discs","genre"]) {
+                    mappingName
+                    values
+                }
             }
             previewTransform(transformations: $transformations) {
                 __typename
@@ -23,7 +27,7 @@ query PreviewTransformSources($srcIds: [String!]!, $transformations: [Transform!
                                 value
                             }
                             mappedTags(mappings: ["album_artist","album_title","year","disc_number","total_discs","genre"]) {
-                                mappingName,
+                                mappingName
                                 values
                             }
                         }

@@ -14,7 +14,8 @@ Kirigami.ScrollablePage {
     id: previewTransformPage
 
     required property var sources
-    required property var groupTags
+    required property var groupMappedTags
+    property var groupTags
 
     title: i18n("Apply transformations?")
 
@@ -30,8 +31,8 @@ Kirigami.ScrollablePage {
     supportsRefreshing: true
     onRefreshingChanged: {
         if (refreshing) {
+            transforms.model.remove(0, transforms.model.count);
             if (applying) {
-                transforms.model.remove(0, transforms.model.count);
                 applyTransform();
             } else {
                 previewTransform();
@@ -61,6 +62,7 @@ Kirigami.ScrollablePage {
             text: i18n("Apply")
             shortcut: "Ctrl+Enter"
             icon.name: "dialog-ok"
+            enabled: !previewTransformPage.refreshing
             onTriggered: {
                 confirmAction.enabled = false;
                 previewTransformPage.applying = true;
@@ -72,11 +74,13 @@ Kirigami.ScrollablePage {
                 id: editAction
                 text: i18n("Edit Group Tags")
                 shortcut: "e"
-                icon.name: "document-edit"
+                icon.name: "tag-edit"
+                enabled: !previewTransformPage.refreshing
                 onTriggered: {
                     console.debug("Edit group tags triggered")
                     let item = applicationWindow().pageStack.pushDialogLayer("qrc:/ui/transform/EditGroupTags.qml", {
-                        'groupTags': Object.assign({}, groupTags),
+                        'groupMappedTags': Object.assign({}, groupMappedTags),
+                        'groupTags': groupTags.map((t, i) => { return {"key": t.key, "value": t.value, "idx": i}; }),
                     }, {'title': 'Edit Group Tags'});
                     editGroupTagsConnections.target = item;
                 }
@@ -85,26 +89,68 @@ Kirigami.ScrollablePage {
     }
     Connections {
         id: editGroupTagsConnections
-        function onAccepted(groupTags) {
-            console.debug("group tags accepted: " + JSON.stringify(groupTags));
-            console.debug("group tags to modify: " + JSON.stringify(previewTransformPage.groupTags));
-            changeContainer.updatedGroupTags = groupTags;
-            previewTransformPage.refreshing = true;
+        function onAccepted(groupMappedTags, groupTags) {
+            if (groupMappedTags) {
+                changeContainer.updatedGroupMappedTags = groupMappedTags;
+                previewTransformPage.refreshing = true;
+            } else if (groupTags) {
+                const changes = Diff.exports.diffJson(changeContainer.updatedGroupTags, groupTags);
+                if (changes.length > 1) {
+                    console.debug("group tags changed");
+                    changeContainer.updatedGroupTags = groupTags;
+                    previewTransformPage.refreshing = true;
+                } else {
+                    console.debug("group tags unchanged");
+                }
+            }
         }
     }
 
     QtObject {
         id: changeContainer
+        property var updatedGroupMappedTags: previewTransformPage.groupMappedTags
         property var updatedGroupTags: previewTransformPage.groupTags
         function transformations() {
+            if (updatedGroupTags !== previewTransformPage.groupTags) {
+                let changes = Diff.exports.diffJsonStructure(previewTransformPage.groupTags, updatedGroupTags);
+                let transformations = [];
+
+                if (changes.removed) {
+                    for (let removal of changes.removed) {
+                        transformations.push(
+                            {
+                                EditMetadata: {
+                                    metadataTransform: {
+                                        RemoveTag: removal
+                                    }
+                                }
+                            });
+                    }
+                }
+
+                if (changes.added) {
+                    for (let added of changes.added) {
+                        transformations.push(
+                            {
+                                EditMetadata: {
+                                    metadataTransform: {
+                                        AddTag: added
+                                    }
+                                }
+                            });
+                    }
+                }
+
+                return transformations;
+            }
             const set = (mapping, getter) => {
-                if (getter(previewTransformPage.groupTags) !== getter(changeContainer.updatedGroupTags)) {
+                if (getter(previewTransformPage.groupMappedTags) !== getter(changeContainer.updatedGroupMappedTags)) {
                     return {
                         EditMetadata: {
                             metadataTransform: {
                                 SetMapping: {
                                     mapping: mapping,
-                                    values: getter(changeContainer.updatedGroupTags)
+                                    values: getter(changeContainer.updatedGroupMappedTags)
                                 }
                             }
                         }
@@ -118,7 +164,7 @@ Kirigami.ScrollablePage {
                 set("genre", g => g.genre),
                 set("disc_number", g => g.discNumber),
                 set("total_discs", g => g.totalDiscs),
-            ].filter(t => t && t.EditMetadata.metadataTransform.SetMapping.values && t.EditMetadata.metadataTransform.SetMapping.values.filter(v => v).length > 0);
+            ].filter(t => t && t.EditMetadata.metadataTransform.SetMapping.values);
         }
     }
 
@@ -342,7 +388,7 @@ Kirigami.ScrollablePage {
                 `<span style="background-color: ${Kirigami.Theme.positiveBackgroundColor}">${added}</span>`;
     }
 
-    property string movePattern: "%album_artist[ (%album_artist_origin)]/%4original_release_year - %album_title[ (%catalogue_number)]/%02track_number - %track_title"
+    property string movePattern: "%album_artist[ (%album_artist_origin)]/%4original_release_year - %album_title[ (%catalogue_number)]/%02track_number - %track_title[ (%va_track_artist)]"
 
     function previewTransform() {
         const ts = [...changeContainer.transformations(),
@@ -367,10 +413,11 @@ Kirigami.ScrollablePage {
                  ).then(
                     transformedSources => {
                         previewTransformPage.refreshing = false;
-                        console.log(JSON.stringify(transformedSources));
                         transforms.model.source = transformedSources;
-                        if (transformedSources[0].metadata) {
-                            previewTransformPage.groupTags = Backend.exports.groupTags(transformedSources[0].metadata.mappedTags);
+                        console.log(JSON.stringify(transformedSources));
+                        if (transformedSources[0] && transformedSources[0].original && transformedSources[0].original.metadata) {
+                            previewTransformPage.groupMappedTags = Backend.exports.groupMappedTags(transformedSources[0].original.metadata.mappedTags);
+                            previewTransformPage.groupTags = Backend.exports.groupTags(transformedSources.map(s => s.original));
                         }
                     }).catch(error => {
                         console.error(error);
