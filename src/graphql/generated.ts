@@ -67,6 +67,17 @@ export type ContainsExpr = {
   contains: Scalars['String'];
 };
 
+export type CopyCoverImage = {
+  url: Scalars['String'];
+};
+
+export enum CoverSource {
+  Bandcamp = 'Bandcamp',
+  FileSystem = 'FileSystem',
+  Qobuz = 'Qobuz',
+  Tidal = 'Tidal'
+}
+
 export type EditMetadata = {
   metadataTransform: MetadataTransformation;
 };
@@ -93,7 +104,22 @@ export type FailedSourceUpdate = {
   msg: Scalars['String'];
 };
 
-export type Image = EmbeddedImage | ExternalImage;
+export type Image = EmbeddedImage | ExternalImage | ImageSearchResult;
+
+export type ImageInfo = {
+  __typename?: 'ImageInfo';
+  bytes: Scalars['Int'];
+  height: Scalars['Int'];
+  url: Scalars['String'];
+  width: Scalars['Int'];
+};
+
+export type ImageSearchResult = {
+  __typename?: 'ImageSearchResult';
+  bigCover: ImageInfo;
+  smallCover: ImageInfo;
+  source: CoverSource;
+};
 
 export type InExpr = {
   in: Array<Scalars['String']>;
@@ -220,7 +246,7 @@ export type SetMapping = {
 
 export type Source = {
   __typename?: 'Source';
-  coverImage?: Maybe<Image>;
+  coverImage: Array<Image>;
   downloadUri: Scalars['String'];
   filePath?: Maybe<Scalars['String']>;
   format: Scalars['String'];
@@ -233,16 +259,26 @@ export type Source = {
 };
 
 
+export type SourceCoverImageArgs = {
+  search?: InputMaybe<Scalars['Boolean']>;
+};
+
+
 export type SourcePreviewTransformArgs = {
   transformations: Array<Transform>;
 };
 
 export type SourceGroup = {
   __typename?: 'SourceGroup';
-  coverImage?: Maybe<Image>;
+  coverImage: Array<Image>;
   groupParentUri: Scalars['String'];
   groupTags: Array<MappedTag>;
   sources: Array<Source>;
+};
+
+
+export type SourceGroupCoverImageArgs = {
+  search?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type SourceWhere = {
@@ -270,6 +306,7 @@ export type TagPair = {
  * i.e., the customer can provide a value for only one field.
  */
 export type Transform = {
+  CopyCoverImage?: InputMaybe<CopyCoverImage>;
   EditMetadata?: InputMaybe<EditMetadata>;
   Move?: InputMaybe<Move>;
   MusicBrainzLookup?: InputMaybe<MusicBrainzLookup>;
@@ -328,7 +365,7 @@ export type GetCollectionSourcesQueryVariables = Exact<{
 }>;
 
 
-export type GetCollectionSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', collections: Array<{ __typename?: 'Collection', sourceGroups: Array<{ __typename?: 'SourceGroup', groupParentUri: string, coverImage?: { __typename?: 'EmbeddedImage', downloadUri: string } | { __typename?: 'ExternalImage', downloadUri: string } | null, groupTags: Array<{ __typename?: 'MappedTag', mappingName: string, values: Array<string> }>, sources: Array<{ __typename?: 'Source', id: any, downloadUri: string, format: string, sourceName: string, filePath?: string | null, length?: number | null, metadata: { __typename?: 'Metadata', format: string, mappedTags: Array<{ __typename?: 'MappedTag', mappingName: string, values: Array<string> }> } }> }> }> } };
+export type GetCollectionSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', collections: Array<{ __typename?: 'Collection', sourceGroups: Array<{ __typename?: 'SourceGroup', groupParentUri: string, coverImage: Array<{ __typename?: 'EmbeddedImage', downloadUri: string } | { __typename?: 'ExternalImage', downloadUri: string } | { __typename?: 'ImageSearchResult' }>, groupTags: Array<{ __typename?: 'MappedTag', mappingName: string, values: Array<string> }>, sources: Array<{ __typename?: 'Source', id: any, downloadUri: string, format: string, sourceName: string, filePath?: string | null, length?: number | null, metadata: { __typename?: 'Metadata', format: string, mappedTags: Array<{ __typename?: 'MappedTag', mappingName: string, values: Array<string> }> } }> }> }> } };
 
 export type GetCollectionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -341,4 +378,4 @@ export type PreviewTransformSourcesQueryVariables = Exact<{
 }>;
 
 
-export type PreviewTransformSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', sources: Array<{ __typename?: 'Source', metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', key: string, value: string }> }, previewTransform: { __typename: 'FailedSourceUpdate', id: any, msg: string } | { __typename: 'UpdatedSource', _0: { __typename?: 'Source', id: any, downloadUri: string, sourceName: string, filePath?: string | null, metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', key: string, value: string }>, mappedTags: Array<{ __typename?: 'MappedTag', mappingName: string, values: Array<string> }> } } } }> } };
+export type PreviewTransformSourcesQuery = { __typename?: 'Query', library: { __typename?: 'LibraryQuery', sources: Array<{ __typename?: 'Source', metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', key: string, value: string }>, mappedTags: Array<{ __typename?: 'MappedTag', mappingName: string, values: Array<string> }> }, coverImage: Array<{ __typename: 'EmbeddedImage', downloadUri: string, imageType: any } | { __typename: 'ExternalImage', downloadUri: string, fileName: string } | { __typename: 'ImageSearchResult', source: CoverSource, bigCover: { __typename?: 'ImageInfo', url: string, width: number, height: number, bytes: number }, smallCover: { __typename?: 'ImageInfo', url: string, width: number, height: number, bytes: number } }>, previewTransform: { __typename: 'FailedSourceUpdate', id: any, msg: string } | { __typename: 'UpdatedSource', _0: { __typename?: 'Source', id: any, downloadUri: string, sourceName: string, filePath?: string | null, metadata: { __typename?: 'Metadata', format: string, tags: Array<{ __typename?: 'TagPair', key: string, value: string }>, mappedTags: Array<{ __typename?: 'MappedTag', mappingName: string, values: Array<string> }> } } } }> } };

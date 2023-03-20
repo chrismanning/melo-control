@@ -13,6 +13,7 @@ qrc!(pub init_resources,
         "SourceGroupList.qml",
         "transform/PreviewTransform.qml",
         "transform/EditGroupTags.qml",
+        "transform/CoverChooser.qml",
     },
     "dist" as "dist" {
         "backend.js",

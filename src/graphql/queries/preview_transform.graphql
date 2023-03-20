@@ -12,6 +12,32 @@ query PreviewTransformSources($srcIds: [String!]!, $transformations: [Transform!
                     values
                 }
             }
+            coverImage(search: true) {
+                __typename
+                ... on EmbeddedImage {
+                    downloadUri
+                    imageType
+                }
+                ... on ExternalImage {
+                    downloadUri
+                    fileName
+                }
+                ... on ImageSearchResult {
+                    bigCover {
+                        url
+                        width
+                        height
+                        bytes
+                    }
+                    smallCover {
+                        url
+                        width
+                        height
+                        bytes
+                    }
+                    source
+                }
+            }
             previewTransform(transformations: $transformations) {
                 __typename
                 ... on UpdatedSource {

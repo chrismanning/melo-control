@@ -20,6 +20,7 @@ type SourceTransformAggregate = {
     originalId: string,
     original: Partial<Source> & HasId,
     transformed?: Extract<PreviewTransformSourcesQuery["library"]["sources"][number]["previewTransform"], Has_0>["_0"],
+    covers?: PreviewTransformSourcesQuery["library"]["sources"][number]["coverImage"],
     error?: Extract<PreviewTransformSourcesQuery["library"]["sources"][number]["previewTransform"], HasId>,
 }
 
@@ -39,7 +40,8 @@ export function preview_transform_sources(sources: Partial<Source>[], transforma
                   return {
                       originalId: sources[index].id,
                       original: {...sources[index], metadata},
-                      transformed: previewTransform._0
+                      transformed: previewTransform._0,
+                      covers: source.coverImage
                   } as SourceTransformAggregate;
               } else if (previewTransform.__typename === 'FailedSourceUpdate') {
                   return {

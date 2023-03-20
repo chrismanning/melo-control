@@ -152,7 +152,7 @@ Kirigami.ScrollablePage {
                             cache: false
                             asynchronous: true
                             mipmap: true
-                            source: model.coverImage && model.coverImage.downloadUri ? `${Config.server_url + model.coverImage.downloadUri}` : ""
+                            source: model.coverImage && model.coverImage[0] && model.coverImage[0].downloadUri ? `${Config.server_url + model.coverImage[0].downloadUri}` : ""
                         }
                         Rectangle {
                             anchors.fill: parent

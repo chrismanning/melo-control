@@ -16,6 +16,7 @@ Kirigami.ScrollablePage {
     required property var sources
     required property var groupMappedTags
     property var groupTags
+    property var coverSearchResults
 
     title: i18n("Apply transformations?")
 
@@ -84,9 +85,24 @@ Kirigami.ScrollablePage {
                     }, {'title': 'Edit Group Tags'});
                     editGroupTagsConnections.target = item;
                 }
+            },
+            Kirigami.Action {
+                id: coversAction
+                text: i18n("Change Cover")
+                shortcut: "c"
+                icon.name: "media-album-cover"
+                enabled: !previewTransformPage.refreshing
+                onTriggered: {
+                    console.debug("Cover image chooser triggered")
+                    let item = applicationWindow().pageStack.pushDialogLayer("qrc:/ui/transform/CoverChooser.qml", {
+                        'coverSearchResults': previewTransformPage.coverSearchResults.filter(result => result.__typename === 'ImageSearchResult'),
+                    }, {'title': 'Choose Cover'});
+                    coverChooserConnections.target = item;
+                }
             }
         ]
     }
+
     Connections {
         id: editGroupTagsConnections
         function onAccepted(groupMappedTags, groupTags) {
@@ -106,18 +122,39 @@ Kirigami.ScrollablePage {
         }
     }
 
+    Connections {
+        id: coverChooserConnections
+        function onAccepted(coverResult) {
+            console.debug(`cover accepted: ${JSON.stringify(coverResult)}`);
+            changeContainer.updatedCover = coverResult;
+        }
+    }
+
     QtObject {
         id: changeContainer
         property var updatedGroupMappedTags: previewTransformPage.groupMappedTags
         property var updatedGroupTags: previewTransformPage.groupTags
+        property var updatedCover
+
         function transformations() {
+
+            let r = [];
+
+            if (changeContainer.updatedCover) {
+                r.push(
+                        {
+                            CopyCoverImage: {
+                                url: changeContainer.updatedCover.bigCover.url
+                            }
+                        });
+            }
+
             if (updatedGroupTags !== previewTransformPage.groupTags) {
                 let changes = Diff.exports.diffJsonStructure(previewTransformPage.groupTags, updatedGroupTags);
-                let transformations = [];
 
                 if (changes.removed) {
                     for (let removal of changes.removed) {
-                        transformations.push(
+                        r.push(
                             {
                                 EditMetadata: {
                                     metadataTransform: {
@@ -130,7 +167,7 @@ Kirigami.ScrollablePage {
 
                 if (changes.added) {
                     for (let added of changes.added) {
-                        transformations.push(
+                        r.push(
                             {
                                 EditMetadata: {
                                     metadataTransform: {
@@ -141,7 +178,7 @@ Kirigami.ScrollablePage {
                     }
                 }
 
-                return transformations;
+                return r;
             }
             const set = (mapping, getter) => {
                 if (getter(previewTransformPage.groupMappedTags) !== getter(changeContainer.updatedGroupMappedTags)) {
@@ -157,14 +194,17 @@ Kirigami.ScrollablePage {
                     }
                 }
             };
-            return [
+            [
                 set("album_artist", g => g.albumArtist),
                 set("album_title", g => g.albumTitle),
                 set("year", g => g.year),
                 set("genre", g => g.genre),
                 set("disc_number", g => g.discNumber),
                 set("total_discs", g => g.totalDiscs),
-            ].filter(t => t && t.EditMetadata.metadataTransform.SetMapping.values);
+            ].filter(t => t && t.EditMetadata.metadataTransform.SetMapping.values)
+                .forEach(t => r.push(t));
+
+            return r;
         }
     }
 
@@ -388,7 +428,7 @@ Kirigami.ScrollablePage {
                 `<span style="background-color: ${Kirigami.Theme.positiveBackgroundColor}">${added}</span>`;
     }
 
-    property string movePattern: "%album_artist[ (%album_artist_origin)]/%4original_release_year - %album_title[ (%catalogue_number)]/%02track_number - %track_title[ (%va_track_artist)]"
+    property string movePattern: "%album_artist[ (%release_artist_origin)]/%4original_release_year - %album_title[ (%catalogue_number)]/%02track_number - %track_title[ (%va_track_artist)]"
 
     function previewTransform() {
         const ts = [...changeContainer.transformations(),
@@ -418,6 +458,7 @@ Kirigami.ScrollablePage {
                         if (transformedSources[0] && transformedSources[0].original && transformedSources[0].original.metadata) {
                             previewTransformPage.groupMappedTags = Backend.exports.groupMappedTags(transformedSources[0].original.metadata.mappedTags);
                             previewTransformPage.groupTags = Backend.exports.groupTags(transformedSources.map(s => s.original));
+                            previewTransformPage.coverSearchResults = transformedSources[0].covers
                         }
                     }).catch(error => {
                         console.error(error);
